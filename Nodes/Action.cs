@@ -155,8 +155,7 @@ namespace Hivemind {
 
 				ParameterInfo[] paramsInfo = methodInfo.GetParameters();
 				foreach (ParameterInfo parameter in paramsInfo) {
-					object value = parameter.DefaultValue != null ? parameter.DefaultValue : GetEmptyValue(parameter.ParameterType);
-					_editorParameters[parameter.Name] = new ActionParameter(parameter.ParameterType, value);
+					_editorParameters[parameter.Name] = new ActionParameter(parameter.ParameterType, GetEmptyValue(parameter.ParameterType));
 				}
 
 				_editorParamsForMethod = methodName;
