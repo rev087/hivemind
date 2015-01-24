@@ -9,14 +9,25 @@ namespace Hivemind {
 	public class HivemindInspector : Editor {
 
 		private static GUIStyle _titleStyle;
+		private static GUIStyle _subtitleStyle;
 
 		public static GUIStyle TitleStyle {
 			get {
 				if (_titleStyle == null) {
 					_titleStyle = new GUIStyle();
-					_titleStyle.fontSize = 14;
+					_titleStyle.fontSize = 18;
 				}
 				return _titleStyle;
+			}
+		}
+
+		public static GUIStyle SubtitleStyle {
+			get {
+				if (_subtitleStyle == null) {
+					_subtitleStyle = new GUIStyle();
+					_subtitleStyle.fontSize = 15;
+				}
+				return _subtitleStyle;
 			}
 		}
 	}
@@ -48,8 +59,12 @@ namespace Hivemind {
 					EditorGUILayout.LabelField("Empty");
 				else
 					EditorGUILayout.LabelField("1 node");
-				
+
+				EditorGUILayout.Space ();
+
 				manager.behaviorTree.title = EditorGUILayout.TextField("Title", manager.behaviorTree.title);
+
+				EditorGUILayout.Space ();
 				
 				if (GUILayout.Button ("Show Behavior Tree editor")) {
 					BTEditorWindow.ShowWindow ();
@@ -99,9 +114,13 @@ namespace Hivemind {
 		public void DrawInspector(Action node) {
 			EditorGUILayout.LabelField(new GUIContent("Action"), TitleStyle);
 
+			EditorGUILayout.Space ();
+
 			// MonoScript selection field
 			Action action = (Action) serializedObject.targetObject;
 			action.monoScript = (MonoScript) EditorGUILayout.ObjectField("Action Library", action.monoScript, typeof(MonoScript), false);
+
+			EditorGUILayout.Space ();
 
 			 // Method selection field
 			if (action.monoScript != null) {
@@ -120,9 +139,39 @@ namespace Hivemind {
 				action.methodName = opts[EditorGUILayout.Popup("Method", IndexOf (opts, action.methodName), opts)];
 			}
 
+			EditorGUILayout.Space ();
+
 			// Method parameters
 			foreach (KeyValuePair<string, Action.ActionParameter> parameter in action.Parameters) {
 				parameter.Value.Value = DrawParamControl(parameter.Value.Type, parameter.Key, parameter.Value.Value);
+			}
+
+			EditorGUILayout.Space ();
+
+			// Contextual Inputs
+			if (action.Inputs.Count > 0) {
+				EditorGUILayout.Space ();
+				EditorGUILayout.LabelField(new GUIContent("Inputs"), SubtitleStyle);
+				foreach (KeyValuePair<string, System.Type> input in action.Inputs) {
+					EditorGUILayout.Space ();
+					EditorGUILayout.BeginHorizontal();
+					EditorGUILayout.LabelField(input.Value.ToString ());
+					EditorGUILayout.SelectableLabel(input.Key);
+					EditorGUILayout.EndHorizontal();
+				}
+			}
+
+			// Contextual Outputs
+			if (action.Outputs.Count > 0) {
+				EditorGUILayout.Space ();
+				EditorGUILayout.LabelField(new GUIContent("Outputs"), SubtitleStyle);
+				foreach (KeyValuePair<string, System.Type> output in action.Outputs) {
+					EditorGUILayout.Space ();
+					EditorGUILayout.BeginHorizontal();
+					EditorGUILayout.LabelField(output.Value.ToString ());
+					EditorGUILayout.SelectableLabel(output.Key);
+					EditorGUILayout.EndHorizontal();
+				}
 			}
 
 			serializedObject.ApplyModifiedProperties();

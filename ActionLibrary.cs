@@ -12,10 +12,7 @@ namespace Hivemind {
 
 	[System.AttributeUsage(System.AttributeTargets.Method)]
 	public class ActionAttribute : System.Attribute {
-		public string[] editorParameters;
-		public ActionAttribute(params string[] parameters) {
-			editorParameters = parameters;
-		}
+		public ActionAttribute() {}
 	}
 
 	[System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple=true)]
@@ -26,31 +23,33 @@ namespace Hivemind {
 		public ParameterAttribute(string parameterName, System.Type parameterType) {
 			name = parameterName;
 			type = parameterType;
+			throw new System.NotImplementedException("ParameterAttribute not implemented");
 		}
 		public ParameterAttribute(string parameterName, System.Type parameterType, GUIField parameterGUIField) {
 			name = parameterName;
 			type = parameterType;
 			guiField = parameterGUIField;
+			throw new System.NotImplementedException("ParameterAttribute not implemented");
 		}
 	}
-
+	
 	[System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple=true)]
-	public class Outputs : System.Attribute {
-		public string key;
-		public System.Type type;
-
-		public Outputs(string outputKey, System.Type outputType) {
-			key = outputKey;
-			type = outputType;
-		}
-	}
-
-	[System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple=true)]
-	public class Expects : System.Attribute {
+	public class ExpectsAttribute : System.Attribute {
 		public string key;
 		public System.Type type;
 		
-		public Expects(string outputKey, System.Type outputType) {
+		public ExpectsAttribute(string inputKey, System.Type inputType) {
+			key = inputKey;
+			type = inputType;
+		}
+	}
+
+	[System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple=true)]
+	public class OutputsAttribute : System.Attribute {
+		public string key;
+		public System.Type type;
+
+		public OutputsAttribute(string outputKey, System.Type outputType) {
 			key = outputKey;
 			type = outputType;
 		}

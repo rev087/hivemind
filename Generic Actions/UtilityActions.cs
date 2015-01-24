@@ -5,7 +5,7 @@ namespace Hivemind {
 	
 	public class UtilityActions : ActionLibrary {
 
-		[Hivemind.Action("tag", "maxDistance")]
+		[Hivemind.Action]
 		[Hivemind.Outputs("gameObject", typeof(GameObject))]
 		public Hivemind.Result FindNearestObjectWithTag(string tag, float maxDistance) {
 			
@@ -30,7 +30,7 @@ namespace Hivemind {
 			}
 		}
 		
-		[Hivemind.Action("seconds")]
+		[Hivemind.Action]
 		public Hivemind.Result Wait(float seconds) {
 			float time = context.Get<float>("timeWaited", 0f);
 			if (time < seconds) {

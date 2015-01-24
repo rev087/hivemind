@@ -74,9 +74,6 @@ namespace Hivemind {
 				}
 			}
 		}
-
-		// Class instance (runtime)
-		// - IMPLEMENT -
 		
 		// Target method
 		private string _methodName;
@@ -87,8 +84,12 @@ namespace Hivemind {
 			set {
 				if (_methodName != value) {
 					_parameters.Clear ();
+					_inputs.Clear ();
+					_outputs.Clear ();
 					_methodInfo = null ;
 					_paramsForMethod = null;
+					_inputsForMethod = null;
+					_outputsForMethod = null;
 				}
 				_methodName = value;
 			}
@@ -135,9 +136,8 @@ namespace Hivemind {
 				else return "";
 			}
 		}
-
 		// This is set after retrieving the parameters for a method, and unset when changing the class or method
-		// selected. It is used to verify if the current list of parameters reflects the current method selection
+		// selected. It is used to verify if the current list of parameters match the current method selection
 		// or we need to reflect the class again.
 		private string _paramsForMethod;
 		private Dictionary<string, ActionParameter> _parameters = new Dictionary<string, ActionParameter>();
@@ -150,8 +150,6 @@ namespace Hivemind {
 					_parameters.Clear();
 					return _parameters;
 				}
-
-//				ActionAttribute[] attrs = (ActionAttribute[]) methodInfo.GetCustomAttributes(typeof(ActionAttribute), false);
 
 				ParameterInfo[] paramsInfo = methodInfo.GetParameters();
 				foreach (ParameterInfo parameter in paramsInfo) {
@@ -170,6 +168,49 @@ namespace Hivemind {
 			
 			return null;
 		}
+
+		// Contextual inputs and outputs
+		private string _inputsForMethod;
+		private Dictionary<string, System.Type> _inputs = new Dictionary<string, System.Type>();
+		public Dictionary<string, System.Type> Inputs {
+			get {
+				if (_inputsForMethod == methodName)
+					return _inputs;
+
+				if (methodName == null || methodInfo == null) {
+					_inputs.Clear();
+					return _inputs;
+				}
+
+				ExpectsAttribute[] attrs = (ExpectsAttribute[]) methodInfo.GetCustomAttributes(typeof(ExpectsAttribute), false);
+				foreach (ExpectsAttribute input in attrs) {
+					_inputs[input.key] = input.type;
+				}
+
+				return _inputs;
+			}
+		}
+		private string _outputsForMethod;
+		private Dictionary<string, System.Type> _outputs = new Dictionary<string, System.Type>();
+		public Dictionary<string, System.Type> Outputs {
+			get {
+				if (_outputsForMethod == methodName)
+					return _outputs;
+				
+				if (methodName == null || methodInfo == null) {
+					_outputs.Clear();
+					return _outputs;
+				}
+				
+				OutputsAttribute[] attrs = (OutputsAttribute[]) methodInfo.GetCustomAttributes(typeof(OutputsAttribute), false);
+				foreach (OutputsAttribute output in attrs) {
+					_outputs[output.key] = output.type;
+				}
+				
+				return _outputs;
+			}
+		}
+
 
 		// Child connections
 		public override void ConnectChild(Node child) {

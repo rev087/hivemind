@@ -41,6 +41,7 @@ namespace Hivemind {
 		}
 
 		[Hivemind.Action]
+		[Hivemind.Expects("position", typeof(Vector3))]
 		public Hivemind.Result MoveTo() {
 			
 			NavMeshAgent navMeshAgent = agent.GetComponent<NavMeshAgent>();
