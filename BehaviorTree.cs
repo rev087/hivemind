@@ -25,12 +25,6 @@ namespace Hivemind {
 		Error
 	}
 
-	public class Result {
-		public Status status;
-		public Dictionary <string, object> context = new Dictionary<string, object>();
-	}
-
-	
 	public class Context {
 		private Dictionary<string, object> context = new Dictionary<string, object>();
 
@@ -93,7 +87,7 @@ namespace Hivemind {
 			}
 		}
 
-		public Result Tick(GameObject agent, Context context) {
+		public Status Tick(GameObject agent, Context context) {
 			return rootNode.Tick(agent, context);
 		}
 	}
@@ -167,7 +161,7 @@ namespace Hivemind {
 		}
 		
 		// Runtime
-		public virtual Result Tick(GameObject agent, Context context) { return new Result {status = Status.Error}; }
+		public virtual Status Tick(GameObject agent, Context context) { return Status.Error; }
 	}
 
 	// Root ------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -230,7 +224,7 @@ namespace Hivemind {
 
 		// Runtime
 
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			return _child.Tick(agent, context);
 		}
@@ -273,7 +267,7 @@ namespace Hivemind {
 
 		// Runtime
 
-		public override abstract Result Tick(GameObject agent, Context context);
+		public override abstract Status Tick(GameObject agent, Context context);
 	}
 
 	[System.Serializable]
@@ -282,26 +276,26 @@ namespace Hivemind {
 		[SerializeField]
 		int lastRunning = 0;
 		
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			for (int i = lastRunning; i < ChildCount; i++)
 			{
 				Node node = Children[i];
-				Result result = node.Tick(agent, context);
-				if (result.status != Status.Failure)
+				Status status = node.Tick(agent, context);
+				if (status != Status.Failure)
 				{
-					lastRunning = result.status == Status.Running ? i : 0;
-					return result;
+					lastRunning = status == Status.Running ? i : 0;
+					return status;
 				}
 			}
-			return new Result {status = Status.Failure};
+			return Status.Failure;
 		}
 	}
 
 	[System.Serializable]
 	public class RandomSelector : Composite
 	{	
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -313,22 +307,22 @@ namespace Hivemind {
 		[SerializeField]
 		int lastRunning = 0;
 		
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			for ( int i = lastRunning; i < ChildCount; i++)
 			{
 				Node node = Children[i];
-				Result result = node.Tick(agent, context);
-				if (result.status != Status.Success)
+				Status status = node.Tick(agent, context);
+				if (status != Status.Success)
 				{
-					lastRunning =  result.status == Status.Running ? i : 0;
-					return result;
+					lastRunning =  status == Status.Running ? i : 0;
+					return status;
 				} else {
 					lastRunning = 0;
 				}
 				
 			}
-			return new Result {status = Status.Success};
+			return Status.Success;
 		}
 	}
 
@@ -336,7 +330,7 @@ namespace Hivemind {
 	public class Parallel : Composite
 	{
 		
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -391,7 +385,7 @@ namespace Hivemind {
 
 		// Runtime
 
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -410,7 +404,7 @@ namespace Hivemind {
 
 		public int repetitions { get { return _repetitions; } }
 
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -419,7 +413,7 @@ namespace Hivemind {
 	[System.Serializable]
 	public class UntilSucceed : Decorator
 	{
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -428,7 +422,7 @@ namespace Hivemind {
 	[System.Serializable]
 	public class Inverter : Decorator
 	{
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -437,7 +431,7 @@ namespace Hivemind {
 	[System.Serializable]
 	public class Succeeder : Decorator
 	{
-		public override Result Tick(GameObject agent, Context context)
+		public override Status Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}

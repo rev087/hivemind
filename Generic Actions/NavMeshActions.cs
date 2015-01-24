@@ -7,7 +7,7 @@ namespace Hivemind {
 		
 		[Hivemind.Action]
 		[Hivemind.Expects("gameObject", typeof(GameObject))]
-		public Hivemind.Result MoveToGameObject() {
+		public Hivemind.Status MoveToGameObject() {
 			GameObject go = context.Get<GameObject> ("gameObject");
 			
 			NavMeshAgent navMeshAgent = agent.GetComponent<NavMeshAgent>();
@@ -18,31 +18,31 @@ namespace Hivemind {
 			
 			// Planning path or moving towards destination
 			if (navMeshAgent.pathPending || navMeshAgent.hasPath && distance > navMeshAgent.stoppingDistance) {
-				return new Hivemind.Result { status = Hivemind.Status.Running };
+				return Status.Running;
 			}
 			
 			// Reached destination
 			else if (distance <= navMeshAgent.stoppingDistance) {
 				anim.SetBool ("IsWalking", false);
-				return new Hivemind.Result { status = Hivemind.Status.Success };
+				return Status.Success;
 			}
 			
 			// Can't reach destination
 			else if (navMeshAgent.pathStatus == NavMeshPathStatus.PathInvalid) {
-				return new Hivemind.Result { status = Hivemind.Status.Failure };
+				return Status.Failure;
 			}
 			
 			// Set destination
 			else {
 				navMeshAgent.SetDestination(sampledDestination.position);
 				anim.SetBool ("IsWalking", true);
-				return new Hivemind.Result { status = Hivemind.Status.Running };
+				return Status.Running;
 			}
 		}
 
 		[Hivemind.Action]
 		[Hivemind.Expects("position", typeof(Vector3))]
-		public Hivemind.Result MoveTo() {
+		public Hivemind.Status MoveTo() {
 			
 			NavMeshAgent navMeshAgent = agent.GetComponent<NavMeshAgent>();
 			Animator anim = agent.GetComponent<Animator>();
@@ -52,25 +52,25 @@ namespace Hivemind {
 			
 			// Planning path or moving towards destination
 			if (navMeshAgent.pathPending || navMeshAgent.hasPath && distance > navMeshAgent.stoppingDistance) {
-				return new Hivemind.Result { status = Hivemind.Status.Running };
+				return Status.Running;
 			}
 			
 			// Reached destination
 			else if (distance <= navMeshAgent.stoppingDistance) {
 				anim.SetBool ("IsWalking", false);
-				return new Hivemind.Result { status = Hivemind.Status.Success };
+				return Status.Success;
 			}
 			
 			// Can't reach destination
 			else if (navMeshAgent.pathStatus == NavMeshPathStatus.PathInvalid) {
-				return new Hivemind.Result { status = Hivemind.Status.Failure };
+				return Status.Failure;
 			}
 			
 			// Set destination
 			else {
 				navMeshAgent.SetDestination(sampledDestination.position);
 				anim.SetBool ("IsWalking", true);
-				return new Hivemind.Result { status = Hivemind.Status.Running };
+				return Status.Running;
 			}
 		}
 

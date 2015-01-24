@@ -7,7 +7,7 @@ namespace Hivemind {
 
 		[Hivemind.Action]
 		[Hivemind.Outputs("gameObject", typeof(GameObject))]
-		public Hivemind.Result FindNearestObjectWithTag(string tag, float maxDistance) {
+		public Hivemind.Status FindNearestObjectWithTag(string tag, float maxDistance) {
 			
 			GameObject[] gameObjects = GameObject.FindGameObjectsWithTag (tag);
 			
@@ -24,23 +24,31 @@ namespace Hivemind {
 			
 			if (nearestGameObject != null) {
 				context.Set<GameObject> ("gameObject", nearestGameObject);
-				return new Hivemind.Result { status=Hivemind.Status.Success };
+				return Status.Success;
 			} else {
-				return new Hivemind.Result { status=Hivemind.Status.Failure };
+				return Status.Failure;
 			}
 		}
 		
 		[Hivemind.Action]
-		public Hivemind.Result Wait(float seconds) {
+		public Hivemind.Status Wait(float seconds) {
 			float time = context.Get<float>("timeWaited", 0f);
 			if (time < seconds) {
 				time += Time.deltaTime;
 				context.Set<float>("timeWaited", time);
-				return new Hivemind.Result { status = Hivemind.Status.Running };
+				return Status.Running;
 			} else {
 				context.Unset("timeWaited");
-				return new Hivemind.Result { status = Hivemind.Status.Success };
+				return Status.Success;
 			}
+		}
+
+		[Hivemind.Action]
+		[Hivemind.Expects("gameObject", typeof(GameObject))]
+		public Hivemind.Status LookAtGameObject() {
+			GameObject gameObject = context.Get<GameObject>("gameObject");
+			agent.transform.LookAt (gameObject.transform.position);
+			return Status.Success;
 		}
 		
 	}

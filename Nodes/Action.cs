@@ -272,17 +272,18 @@ namespace Hivemind {
 		
 		// Runtime
 		private static Dictionary<string, ActionLibrary> ActionLibraries = new Dictionary<string, ActionLibrary>();
-		public override Result Tick(GameObject agent, Context context) {
-			if (_monoScriptClass == null) {
-				Debug.LogWarning("An action node does not have an associated ActionLibrary");
-				return new Result {status = Status.Error};
-			}
+		public override Status Tick(GameObject agent, Context context) {
 
 			ActionLibrary lib;
 			if (ActionLibraries.ContainsKey(_monoScriptClass)) {
 				lib = ActionLibraries[_monoScriptClass];
 			} else {
 				System.Type type = System.Type.GetType (_monoScriptClass);
+				if (type == null) {
+					Debug.LogWarning("An action node does not have an associated ActionLibrary");
+					return Status.Error;
+				}
+				
 				lib = (ActionLibrary) System.Activator.CreateInstance (type);
 			}
 
@@ -300,7 +301,7 @@ namespace Hivemind {
 
 			object result = methodInfo.Invoke(lib, parameters);
 
-			return (Result) result;
+			return (Status) result;
 		}
 	}
 }
