@@ -292,6 +292,11 @@ namespace Hivemind {
 				lib.context = context;
 
 			}
+			
+			if (methodInfo == null) {
+				Debug.LogWarning("An action node does not have an associated ActionLibrary method");
+				return Status.Error;
+			}
 
 			object[] parameters = new object[Parameters.Count];
 			int i = 0;
