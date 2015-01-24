@@ -124,6 +124,7 @@ namespace Hivemind {
 		public void Add(object userData) {
 			MenuAction menuAction = userData as MenuAction;
 			BTEditorManager.Manager.Add (menuAction.node, menuAction.position, menuAction.nodeType);
+			view.ResizeCanvas();
 			Repaint ();
 		}
 

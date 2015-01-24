@@ -10,7 +10,7 @@ namespace Hivemind {
 	public class View {
 
 		GridRenderer gridRenderer;
-		Rect canvas = new Rect(0, 0, 2100, 800);
+		Rect canvas;
 		Vector2 scrollPoint = Vector2.zero;
 		NodeRenderer nodeRenderer;
 
@@ -27,6 +27,7 @@ namespace Hivemind {
 
 		public View(BTEditorWindow owner) {
 			editorWindow = owner;
+			canvas = new Rect(0, 0, owner.position.width, owner.position.height);
 		}
 
 		void DrawNodes(List<Node> nodes) {
@@ -68,12 +69,12 @@ namespace Hivemind {
 			Vector3 endTan = Vector3.zero;
 
 			if (currentMode == Mode.ConnectParent) {
-				startPos = new Vector3(contextNode.editorPosition.x + (nodeRenderer.Width / 2), contextNode.editorPosition.y, 0);
+				startPos = new Vector3(contextNode.editorPosition.x + (NodeRenderer.Width / 2), contextNode.editorPosition.y, 0);
 				startTan = startPos + Vector3.down * GridRenderer.step.x * 2;
 				endTan = endPos + Vector3.up * GridRenderer.step.x * 2;
 			}
 			else if(currentMode == Mode.ConnectChild) {
-				startPos = new Vector3(contextNode.editorPosition.x + (nodeRenderer.Width / 2), contextNode.editorPosition.y + nodeRenderer.Height, 0);
+				startPos = new Vector3(contextNode.editorPosition.x + (NodeRenderer.Width / 2), contextNode.editorPosition.y + NodeRenderer.Height, 0);
 				startTan = startPos + Vector3.up * GridRenderer.step.x * 2;
 				endTan = endPos + Vector3.down * GridRenderer.step.x * 2;
 			}
@@ -180,6 +181,14 @@ namespace Hivemind {
 					currentMode = Mode.None;
 				}
 
+				// Resize canvas after a drag
+
+				else if (currentMode == Mode.DragNode) {
+					ResizeCanvas();
+					currentMode = Mode.None;
+					return true;
+				}
+
 				else {
 					currentMode = Mode.None;
 				}
@@ -230,7 +239,22 @@ namespace Hivemind {
 			return false;
 		}
 
-		void SelectNode(Node node) {
+		public void ResizeCanvas() {
+			Rect newCanvas = new Rect(0, 0, editorWindow.position.width, editorWindow.position.height);
+			foreach (Node node in BTEditorManager.Manager.behaviorTree.nodes) {
+				float xOffset = node.editorPosition.x + NodeRenderer.Width + GridRenderer.step.x * 10;
+				if (xOffset > newCanvas.width) {
+					newCanvas.width = xOffset;
+				}
+				float yOffset = node.editorPosition.y + NodeRenderer.Height + GridRenderer.step.y * 10;
+				if (yOffset > newCanvas.height) {
+					newCanvas.height = yOffset;
+				}
+				canvas = newCanvas;
+			}
+		}
+
+		private void SelectNode(Node node) {
 			selectedNode = node;
 			Editor nodeInspector = Editor.CreateEditor (node);
 
@@ -244,7 +268,7 @@ namespace Hivemind {
 			}
 		}
 
-		void DragNode(Node node, Vector2 newPosition) {
+		private void DragNode(Node node, Vector2 newPosition) {
 
 			if (node.ChildCount > 0 && !Event.current.shift) {
 				for (int i = 0; i < node.ChildCount; i++) {

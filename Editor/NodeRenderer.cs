@@ -30,8 +30,8 @@ namespace Hivemind {
 		Texture2D parallelTex;
 		Texture2D randomSelectorTex;
 
-		public float Width { get { return GridRenderer.step.x * 6; } }
-		public float Height { get { return GridRenderer.step.y * 6; } }
+		public static float Width { get { return GridRenderer.step.x * 6; } }
+		public static float Height { get { return GridRenderer.step.y * 6; } }
 
 		public NodeRenderer() {
 
@@ -189,7 +189,7 @@ namespace Hivemind {
 				if (((Action)node).methodInfo != null)
 					title = ((Action)node).methodName;
 				else
-					title = "<none>";
+					title = "";
 				title = title.Replace(".", ".\n");
 				Vector2 textSize = GUI.skin.label.CalcSize(new GUIContent(title));
 				float x = node.editorPosition.x + (Width/2) - (textSize.x/2) - 6;
