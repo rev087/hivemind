@@ -9,20 +9,21 @@ namespace Hivemind {
 		[Hivemind.Outputs("gameObject", typeof(GameObject))]
 		public Hivemind.Result FindNearestObjectWithTag(string tag, float maxDistance) {
 			
-			GameObject[] nodes = GameObject.FindGameObjectsWithTag (tag);
+			GameObject[] gameObjects = GameObject.FindGameObjectsWithTag (tag);
 			
 			float nearestDistance = float.PositiveInfinity;
-			GameObject nearestNode = null;
-			foreach (GameObject node in nodes) {
-				float distance = Vector3.Distance(node.transform.position, agent.transform.position);
+			GameObject nearestGameObject = null;
+
+			foreach (GameObject gameObject in gameObjects) {
+				float distance = Vector3.Distance(gameObject.transform.position, agent.transform.position);
 				if (distance < nearestDistance) {
 					nearestDistance = distance;
-					nearestNode = node;
+					nearestGameObject = gameObject;
 				}
 			}
 			
-			if (nearestNode != null) {
-				context.Set<GameObject> ("gameObject", nearestNode);
+			if (nearestGameObject != null) {
+				context.Set<GameObject> ("gameObject", nearestGameObject);
 				return new Hivemind.Result { status=Hivemind.Status.Success };
 			} else {
 				return new Hivemind.Result { status=Hivemind.Status.Failure };
