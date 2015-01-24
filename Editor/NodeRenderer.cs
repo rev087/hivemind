@@ -158,16 +158,6 @@ namespace Hivemind {
 				GUI.DrawTexture (IconRect (nodeRect), inverterTex);
 			}
 
-
-			// Action
-			else if (node is Action) {
-				if (actionTex == null) {
-					actionTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Action.png");
-					actionTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), actionTex);
-			}
-
 			// Parallel
 			else if (node is Parallel) {
 				if (parallelTex == null) {
@@ -177,13 +167,34 @@ namespace Hivemind {
 				GUI.DrawTexture (IconRect (nodeRect), parallelTex);
 			}
 			
-			// Random
+			// Random Selector
 			else if (node is RandomSelector) {
 				if (randomSelectorTex == null) {
 					randomSelectorTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Random Selector.png");
 					randomSelectorTex.hideFlags = HideFlags.DontSave;
 				}
 				GUI.DrawTexture (IconRect (nodeRect), randomSelectorTex);
+			}
+			
+			// Action
+			else if (node is Action) {
+				if (actionTex == null) {
+					actionTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Action.png");
+					actionTex.hideFlags = HideFlags.DontSave;
+				}
+				GUI.DrawTexture (IconRect (nodeRect), actionTex);
+
+				// Node title
+				string title;
+				if (((Action)node).methodInfo != null)
+					title = ((Action)node).methodName;
+				else
+					title = "<none>";
+				title = title.Replace(".", ".\n");
+				Vector2 textSize = GUI.skin.label.CalcSize(new GUIContent(title));
+				float x = node.editorPosition.x + (Width/2) - (textSize.x/2) - 6;
+				Rect titleRect = new Rect(x, node.editorPosition.y + Height, textSize.x + 10, textSize.y);
+				EditorGUI.DropShadowLabel(titleRect, new GUIContent(title));
 			}
 
 			// Selection highlight
