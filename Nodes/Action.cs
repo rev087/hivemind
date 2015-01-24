@@ -115,8 +115,13 @@ namespace Hivemind {
 
 		// Class to represent the parameter unit
 		public class ActionParameter {
-			public object Value;
 			public System.Type Type;
+			public object Value;
+
+			public ActionParameter(System.Type paramType, object paramValue) {
+				Type = paramType;
+				Value = paramValue;
+			}
 		}
 
 		// This is set after retrieving the parameters for a method, and unset when changing the class or method
@@ -134,31 +139,17 @@ namespace Hivemind {
 					return _editorParameters;
 				}
 
-				// Retrieve the parameters which we want to populate during edit time 
-				ActionAttribute[] attrs = (ActionAttribute[]) methodInfo.GetCustomAttributes(typeof(ActionAttribute), false);
-				if (attrs.Length > 0) {
+//				ActionAttribute[] attrs = (ActionAttribute[]) methodInfo.GetCustomAttributes(typeof(ActionAttribute), false);
 
-					// The first parameters of ActionAttribute is of type "params object[]", so there is only one element in the `attrs` array
-					foreach (string paramName in attrs[0].editorParameters) {
-
-						// To retrieve the type, we need to look into the method signature for a parameter of name `paramName`, and retrieve its type
-						// GetDefaultValue is used to obtain an appropriate default value that won't cause deserialization errors
-						System.Type type = GetParamType (paramName);
-						_editorParameters[paramName] = new ActionParameter {Type = type, Value = GetDefaultValue(type)};
-
-					}
+				ParameterInfo[] paramsInfo = methodInfo.GetParameters();
+				foreach (ParameterInfo parameter in paramsInfo) {
+					_editorParameters[parameter.Name] = new ActionParameter(parameter.ParameterType, parameter.DefaultValue);
 				}
+
 				_editorParamsForMethod = methodName;
 
 				return _editorParameters;
 			}
-		}
-		private System.Type GetParamType(string paramName) {
-			ParameterInfo[] paramsInfo = methodInfo.GetParameters();
-			foreach (ParameterInfo parameter in paramsInfo) {
-				if (parameter.Name == paramName) return parameter.ParameterType;
-			}
-			return null;
 		}
 		private object GetDefaultValue(System.Type type) {
 			// This method is necessary because string does not have a constructor that takes 0 parameters, so
