@@ -8,14 +8,6 @@ using System.ComponentModel;
 
 namespace Hivemind {
 
-	[System.AttributeUsage(System.AttributeTargets.Method)]
-	public class ActionAttribute : System.Attribute {
-		public string[] editorParameters;
-		public ActionAttribute(params string[] parameters) {
-			editorParameters = parameters;
-		}
-	}
-	
 	[System.Serializable]
 	public class Action : Node
 	{
@@ -234,8 +226,36 @@ namespace Hivemind {
 		}
 		
 		// Runtime
-		public override Result Run(BehaviorTreeAgent agent) {
-			throw new System.NotImplementedException ();
+		private static Dictionary<string, ActionLibrary> ActionLibraries = new Dictionary<string, ActionLibrary>();
+		public override Result Tick(GameObject agent, Context context) {
+			if (_monoScriptClass == null) {
+				Debug.LogWarning("An action node does not have an associated ActionLibrary");
+				return new Result {status = Status.Error};
+			}
+
+			ActionLibrary lib;
+			if (ActionLibraries.ContainsKey(_monoScriptClass)) {
+				lib = ActionLibraries[_monoScriptClass];
+			} else {
+				System.Type type = System.Type.GetType (_monoScriptClass);
+				lib = (ActionLibrary) System.Activator.CreateInstance (type);
+			}
+
+			if (lib != null) {
+				lib.agent = agent;
+				lib.context = context;
+
+			}
+
+			object[] parameters = new object[EditorParameters.Count];
+			int i = 0;
+			foreach (KeyValuePair<string, ActionParameter> parameter in EditorParameters) {
+				parameters[i++] = parameter.Value.Value;
+			}
+
+			object result = methodInfo.Invoke(lib, parameters);
+
+			return (Result) result;
 		}
 	}
 }

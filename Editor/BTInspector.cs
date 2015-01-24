@@ -133,7 +133,7 @@ namespace Hivemind {
 				if (value == null) value = "";
 				return EditorGUILayout.TextField(label, (string) value);
 			}
-			if (type == typeof(float)) {
+			else if (type == typeof(float)) {
 				if (value == null) value = 0f;
 				return EditorGUILayout.FloatField(label, (float) value);
 			}

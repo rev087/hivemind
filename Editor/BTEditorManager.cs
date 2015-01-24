@@ -147,8 +147,8 @@ namespace Hivemind {
 				} else {
 					node.editorPosition = new Vector2(parent.editorPosition.x, parent.editorPosition.y + GridRenderer.step.y * 10);
 				}
-				
 				parent.ConnectChild(node);
+				SortChildren(parent);
 				Dirty ();
 			} else {
 				float xOffset = position.x % GridRenderer.step.x;
@@ -162,6 +162,7 @@ namespace Hivemind {
 		public void Connect(Node parent, Node child) {
 			if (parent.CanConnectChild) {
 				parent.ConnectChild(child);
+				SortChildren(parent);
 				Dirty ();
 			} else {
 				Debug.LogWarning (string.Format ("{0} can't accept child {1}", parent, child));
@@ -182,7 +183,14 @@ namespace Hivemind {
 
 		public void SetEditorPosition(Node node, Vector2 position) {
 			node.editorPosition = position;
+			SortChildren(node.parent);
 			Dirty ();
+		}
+
+		private void SortChildren(Node parent) {
+			Composite parentComposite = parent as Composite;
+			if (parentComposite != null)
+				parentComposite.SortChildren();
 		}
 	}
 

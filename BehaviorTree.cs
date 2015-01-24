@@ -30,6 +30,40 @@ namespace Hivemind {
 		public Dictionary <string, object> context = new Dictionary<string, object>();
 	}
 
+	
+	public class Context {
+		private Dictionary<string, object> context = new Dictionary<string, object>();
+
+		public bool ContainsKey(string key) {
+			return context.ContainsKey(key);
+		}
+		
+		public T Get<T>(string key) {
+			if (!context.ContainsKey(key)) {
+				throw new System.MissingMemberException(string.Format ("Key {0} not found in the current context", key));
+			}
+			T value = (T) context[key];
+			return value;
+		}
+
+		public T Get<T>(string key, T defaultValue) {
+			if (!context.ContainsKey(key)) {
+				Set<T>(key, defaultValue);
+				return defaultValue;
+			}
+			T value = (T) context[key];
+			return value;
+		}
+		
+		public void Set<T>(string key, T value) {
+			context[key] = value;
+		}
+
+		public void Unset(string key) {
+			context.Remove (key);
+		}
+	}
+
 	[System.Serializable]
 	public class BehaviorTree : ScriptableObject {
 
@@ -59,14 +93,15 @@ namespace Hivemind {
 			}
 		}
 
-		public Result Run(BehaviorTreeAgent agent) {
-			return rootNode.Run (agent);
+		public Result Tick(GameObject agent, Context context) {
+			return rootNode.Tick(agent, context);
 		}
 	}
 
 
 	[System.Serializable]
-	public class Node : ScriptableObject {
+	public class Node : ScriptableObject, System.IComparable {
+
 		// Editor settings
 		[SerializeField]
 		public Vector2 editorPosition;
@@ -78,6 +113,12 @@ namespace Hivemind {
 		public virtual int ChildCount { get { return 0; } }
 		public virtual bool CanConnectChild { get { return false; } }
 		public virtual bool ContainsChild(Node child) { return false; }
+
+		// IComparable for sorting left-to-right in the visual editor
+		public int CompareTo(object other) {
+			Node otherNode = other as Node;
+			return editorPosition.x < otherNode.editorPosition.x ? -1 : 1;
+		}
 		
 		// Parent connections
 		[SerializeField]
@@ -126,7 +167,7 @@ namespace Hivemind {
 		}
 		
 		// Runtime
-		public virtual Result Run(BehaviorTreeAgent agent) { return new Result {status = Status.Error}; }
+		public virtual Result Tick(GameObject agent, Context context) { return new Result {status = Status.Error}; }
 	}
 
 	// Root ------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -189,9 +230,9 @@ namespace Hivemind {
 
 		// Runtime
 
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
-			return _child.Run (agent);
+			return _child.Tick(agent, context);
 		}
 	}
 	
@@ -217,6 +258,10 @@ namespace Hivemind {
 				throw new System.InvalidOperationException(string.Format ("{0} is not a child of {1}", child, this));
 			}
 		}
+
+		public void SortChildren() {
+			_children.Sort ();
+		}
 		
 		public override List<Node> Children { get { return _children; } }
 
@@ -228,7 +273,7 @@ namespace Hivemind {
 
 		// Runtime
 
-		public override abstract Result Run(BehaviorTreeAgent agent);
+		public override abstract Result Tick(GameObject agent, Context context);
 	}
 
 	[System.Serializable]
@@ -237,12 +282,12 @@ namespace Hivemind {
 		[SerializeField]
 		int lastRunning = 0;
 		
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			for (int i = lastRunning; i < ChildCount; i++)
 			{
 				Node node = Children[i];
-				Result result = node.Run(agent);
+				Result result = node.Tick(agent, context);
 				if (result.status != Status.Failure)
 				{
 					lastRunning = result.status == Status.Running ? i : 0;
@@ -256,7 +301,7 @@ namespace Hivemind {
 	[System.Serializable]
 	public class RandomSelector : Composite
 	{	
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -268,16 +313,18 @@ namespace Hivemind {
 		[SerializeField]
 		int lastRunning = 0;
 		
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			for ( int i = lastRunning; i < ChildCount; i++)
 			{
 				Node node = Children[i];
-				Result result = node.Run(agent);
+				Result result = node.Tick(agent, context);
 				if (result.status != Status.Success)
 				{
 					lastRunning =  result.status == Status.Running ? i : 0;
 					return result;
+				} else {
+					lastRunning = 0;
 				}
 				
 			}
@@ -289,7 +336,7 @@ namespace Hivemind {
 	public class Parallel : Composite
 	{
 		
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -344,7 +391,7 @@ namespace Hivemind {
 
 		// Runtime
 
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -363,7 +410,7 @@ namespace Hivemind {
 
 		public int repetitions { get { return _repetitions; } }
 
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -372,7 +419,7 @@ namespace Hivemind {
 	[System.Serializable]
 	public class UntilSucceed : Decorator
 	{
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -381,7 +428,7 @@ namespace Hivemind {
 	[System.Serializable]
 	public class Inverter : Decorator
 	{
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
@@ -390,7 +437,7 @@ namespace Hivemind {
 	[System.Serializable]
 	public class Succeeder : Decorator
 	{
-		public override Result Run(BehaviorTreeAgent agent)
+		public override Result Tick(GameObject agent, Context context)
 		{
 			throw new System.NotImplementedException ();
 		}
