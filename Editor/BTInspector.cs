@@ -101,7 +101,7 @@ namespace Hivemind {
 
 			// MonoScript selection field
 			Action action = (Action) serializedObject.targetObject;
-			action.monoScript = (MonoScript) EditorGUILayout.ObjectField(action.monoScript, typeof(MonoScript), false);
+			action.monoScript = (MonoScript) EditorGUILayout.ObjectField("Action Library", action.monoScript, typeof(MonoScript), false);
 
 			 // Method selection field
 			if (action.monoScript != null) {
