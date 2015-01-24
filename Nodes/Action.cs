@@ -42,10 +42,8 @@ namespace Hivemind {
 
 				// Failing that, the script was either renamed or removed, so we disassociate and log a warning
 				if (_monoScriptInstance == null) {
-					Debug.LogWarning(string.Format ("Could not find the class {0} associated with the action", _monoScriptClass));
-					_monoScriptID = 0;
-					_monoScriptClass = "";
-					_monoScriptInstance = null;
+					Debug.LogWarning(string.Format ("Class {0} not defined", _monoScriptClass));
+					monoScript = null;
 				} else {
 					// Store the ID for cheaper retrieval
 					_monoScriptID = _monoScriptInstance.GetInstanceID();
@@ -55,7 +53,13 @@ namespace Hivemind {
 				return _monoScriptInstance;
 			}
 			set {
+
 				if (value != _monoScriptInstance) {
+					if (System.Type.GetType (value.name) == null && System.Type.GetType ("Hivemind." + value.name) == null) {
+						Debug.LogWarning(string.Format ("Class {0} not defined", value.name));
+						return;
+					}
+
 					if (value != null) {
 						_monoScriptClass = value.GetClass ().ToString();
 						_monoScriptID = value.GetInstanceID();
@@ -103,7 +107,10 @@ namespace Hivemind {
 				// Attempt to retrieve the MethodInfo
 				if (_methodInfo == null) {
 					System.Type type = System.Type.GetType(_monoScriptClass);
-					if (type == null) return null;
+					if (type == null) {
+						Debug.LogWarning(string.Format ("Could not find the class {0} associated with the action", _monoScriptClass));
+						return null;
+					}
 					_methodInfo = type.GetMethod(methodName);
 				}
 
@@ -121,6 +128,11 @@ namespace Hivemind {
 			public ActionParameter(System.Type paramType, object paramValue) {
 				Type = paramType;
 				Value = paramValue;
+			}
+
+			public string ValueToString() {
+				if (Value != null) return Value.ToString ();
+				else return "";
 			}
 		}
 
@@ -143,7 +155,8 @@ namespace Hivemind {
 
 				ParameterInfo[] paramsInfo = methodInfo.GetParameters();
 				foreach (ParameterInfo parameter in paramsInfo) {
-					_editorParameters[parameter.Name] = new ActionParameter(parameter.ParameterType, parameter.DefaultValue);
+					object value = parameter.DefaultValue != null ? parameter.DefaultValue : GetEmptyValue(parameter.ParameterType);
+					_editorParameters[parameter.Name] = new ActionParameter(parameter.ParameterType, value);
 				}
 
 				_editorParamsForMethod = methodName;
@@ -151,11 +164,12 @@ namespace Hivemind {
 				return _editorParameters;
 			}
 		}
-		private object GetDefaultValue(System.Type type) {
-			// This method is necessary because string does not have a constructor that takes 0 parameters, so
-			// Activator.CreateInstance will throw an exception
-			if (type == typeof(string)) return "";
-			else return System.Activator.CreateInstance(type);
+		private object GetEmptyValue(System.Type t)
+		{
+			if (t.IsValueType)
+				return System.Activator.CreateInstance(t);
+			
+			return null;
 		}
 
 		// Child connections
@@ -190,7 +204,7 @@ namespace Hivemind {
 				XmlElement paramEl = doc.CreateElement("param");
 				paramEl.SetAttribute("key", parameter.Key);
 				paramEl.SetAttribute("type", parameter.Value.Type.ToString ());
-				paramEl.SetAttribute("value", parameter.Value.Value.ToString ());
+				paramEl.SetAttribute("value", parameter.Value.ValueToString ());
 				el.AppendChild (paramEl);
 			}
 			return el;

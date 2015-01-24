@@ -130,11 +130,9 @@ namespace Hivemind {
 
 		private object DrawParamControl(System.Type type, string label, object value) {
 			if (type == typeof(string)) {
-				if (value == null) value = "";
 				return EditorGUILayout.TextField(label, (string) value);
 			}
 			else if (type == typeof(float)) {
-				if (value == null) value = 0f;
 				return EditorGUILayout.FloatField(label, (float) value);
 			}
 			return null;
