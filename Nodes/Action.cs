@@ -86,9 +86,9 @@ namespace Hivemind {
 			}
 			set {
 				if (_methodName != value) {
-					_editorParameters.Clear ();
+					_parameters.Clear ();
 					_methodInfo = null ;
-					_editorParamsForMethod = null;
+					_paramsForMethod = null;
 				}
 				_methodName = value;
 			}
@@ -139,28 +139,28 @@ namespace Hivemind {
 		// This is set after retrieving the parameters for a method, and unset when changing the class or method
 		// selected. It is used to verify if the current list of parameters reflects the current method selection
 		// or we need to reflect the class again.
-		private string _editorParamsForMethod;
-		private Dictionary<string, ActionParameter> _editorParameters = new Dictionary<string, ActionParameter>();
-		public Dictionary<string, ActionParameter> EditorParameters {
+		private string _paramsForMethod;
+		private Dictionary<string, ActionParameter> _parameters = new Dictionary<string, ActionParameter>();
+		public Dictionary<string, ActionParameter> Parameters {
 			get {
-				if (_editorParamsForMethod == methodName)
-					return _editorParameters;
+				if (_paramsForMethod == methodName)
+					return _parameters;
 
 				if (methodName == null || methodInfo == null) {
-					_editorParameters.Clear();
-					return _editorParameters;
+					_parameters.Clear();
+					return _parameters;
 				}
 
 //				ActionAttribute[] attrs = (ActionAttribute[]) methodInfo.GetCustomAttributes(typeof(ActionAttribute), false);
 
 				ParameterInfo[] paramsInfo = methodInfo.GetParameters();
 				foreach (ParameterInfo parameter in paramsInfo) {
-					_editorParameters[parameter.Name] = new ActionParameter(parameter.ParameterType, GetEmptyValue(parameter.ParameterType));
+					_parameters[parameter.Name] = new ActionParameter(parameter.ParameterType, GetEmptyValue(parameter.ParameterType));
 				}
 
-				_editorParamsForMethod = methodName;
+				_paramsForMethod = methodName;
 
-				return _editorParameters;
+				return _parameters;
 			}
 		}
 		private object GetEmptyValue(System.Type t)
@@ -198,7 +198,7 @@ namespace Hivemind {
 			el.SetAttribute("script", _monoScriptClass);
 			el.SetAttribute("scriptid", _monoScriptID.ToString());
 			el.SetAttribute("method", methodName);
-			foreach (KeyValuePair<string, ActionParameter> parameter in EditorParameters)
+			foreach (KeyValuePair<string, ActionParameter> parameter in Parameters)
 			{
 				XmlElement paramEl = doc.CreateElement("param");
 				paramEl.SetAttribute("key", parameter.Key);
@@ -221,9 +221,9 @@ namespace Hivemind {
 					if (paramEl != null && paramEl.Name == "param") {
 						string key = paramEl.GetAttribute ("key");
 						System.Type type = System.Type.GetType(paramEl.GetAttribute("type"));
-						EditorParameters[key].Type = type;
+						Parameters[key].Type = type;
 						string value = paramEl.GetAttribute("value");
-						EditorParameters[key].Value = TypeDescriptor.GetConverter(type).ConvertFrom(value);
+						Parameters[key].Value = TypeDescriptor.GetConverter(type).ConvertFrom(value);
 					}
 				}
 			}
@@ -251,9 +251,9 @@ namespace Hivemind {
 
 			}
 
-			object[] parameters = new object[EditorParameters.Count];
+			object[] parameters = new object[Parameters.Count];
 			int i = 0;
-			foreach (KeyValuePair<string, ActionParameter> parameter in EditorParameters) {
+			foreach (KeyValuePair<string, ActionParameter> parameter in Parameters) {
 				parameters[i++] = parameter.Value.Value;
 			}
 

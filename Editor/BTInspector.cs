@@ -121,7 +121,7 @@ namespace Hivemind {
 			}
 
 			// Method parameters
-			foreach (KeyValuePair<string, Action.ActionParameter> parameter in action.EditorParameters) {
+			foreach (KeyValuePair<string, Action.ActionParameter> parameter in action.Parameters) {
 				parameter.Value.Value = DrawParamControl(parameter.Value.Type, parameter.Key, parameter.Value.Value);
 			}
 
