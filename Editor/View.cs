@@ -254,7 +254,8 @@ namespace Hivemind {
 			}
 		}
 
-		private void SelectNode(Node node) {
+		public void SelectNode(Node node) {
+
 			selectedNode = node;
 			Editor nodeInspector = Editor.CreateEditor (node);
 

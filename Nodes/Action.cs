@@ -6,6 +6,10 @@ using System.Xml;
 using System.Reflection;
 using System.ComponentModel;
 
+using System.Xml.Serialization;
+using System.IO;
+using System.Text;
+
 namespace Hivemind {
 
 	[System.Serializable]
@@ -13,12 +17,9 @@ namespace Hivemind {
 	{
 
 		// Target MonoScript
-		[SerializeField]
 		private MonoScript _monoScriptInstance;
-		[SerializeField]
-		private int _monoScriptID;
-		[SerializeField]
 		private string _monoScriptClass;
+		private string _monoScriptPath;
 		public MonoScript monoScript {
 			get {
 				// No class means no selection, return null
@@ -29,50 +30,42 @@ namespace Hivemind {
 				if (_monoScriptInstance != null)
 					return _monoScriptInstance;
 
-				// First attempt to retrieve the object reference from the object ID
-				if (_monoScriptID != 0) {
-					_monoScriptInstance = EditorUtility.InstanceIDToObject(_monoScriptID) as MonoScript;
-
-					if (_monoScriptInstance != null)
-						return _monoScriptInstance;
+				// Load the script asset from the stored path
+				if (_monoScriptPath != null) {
+					_monoScriptInstance = (MonoScript) AssetDatabase.LoadAssetAtPath (_monoScriptPath, typeof(MonoScript));
 				}
-
-				// Lastly, attempt to retrieve the object reference from the class name
-				_monoScriptInstance = MonoScript.FindObjectOfType<MonoScript>();
 
 				// Failing that, the script was either renamed or removed, so we disassociate and log a warning
 				if (_monoScriptInstance == null) {
 					Debug.LogWarning(string.Format ("Class {0} not defined", _monoScriptClass));
 					monoScript = null;
-				} else {
-					// Store the ID for cheaper retrieval
-					_monoScriptID = _monoScriptInstance.GetInstanceID();
 				}
-
 
 				return _monoScriptInstance;
 			}
 			set {
-
 				if (value != _monoScriptInstance) {
-					if (System.Type.GetType (value.name) == null && System.Type.GetType ("Hivemind." + value.name) == null) {
-						Debug.LogWarning(string.Format ("Class {0} not defined", value.name));
-						return;
-					}
-
 					if (value != null) {
+						if (System.Type.GetType (value.name) == null && System.Type.GetType ("Hivemind." + value.name) == null) {
+							Debug.LogWarning(string.Format ("Class {0} not defined", value.name));
+							return;
+						}
+						_monoScriptPath = AssetDatabase.GetAssetPath(value);
 						_monoScriptClass = value.GetClass ().ToString();
-						_monoScriptID = value.GetInstanceID();
 						_monoScriptInstance = value;
 					}
 					else {
-						_monoScriptClass = "";
-						_monoScriptID = 0;
+						_monoScriptPath = null;
+						_monoScriptClass = null;
 						_monoScriptInstance = null;
 					}
 					methodName = null;
 				}
 			}
+		}
+
+		public void ForceReload() {
+			_monoScriptInstance = (MonoScript) AssetDatabase.LoadAssetAtPath (_monoScriptPath, typeof(MonoScript));
 		}
 		
 		// Target method
@@ -237,7 +230,7 @@ namespace Hivemind {
 			el.SetAttribute("editorx", editorPosition.x.ToString());
 			el.SetAttribute("editory", editorPosition.y.ToString());
 			el.SetAttribute("script", _monoScriptClass);
-			el.SetAttribute("scriptid", _monoScriptID.ToString());
+			el.SetAttribute("scriptpath", _monoScriptPath);
 			el.SetAttribute("method", methodName);
 			foreach (KeyValuePair<string, ActionParameter> parameter in Parameters)
 			{
@@ -253,22 +246,48 @@ namespace Hivemind {
 		// Deserialization
 		public void Deserialize(XmlElement el) {
 			_monoScriptClass = el.GetAttribute("script");
-			if (el.GetAttribute ("scriptid") != null && el.GetAttribute ("scriptid").Length > 0)
-				_monoScriptID = int.Parse (el.GetAttribute ("scriptid"));
+			_monoScriptPath = el.GetAttribute("scriptpath");
 			methodName = el.GetAttribute ("method");
 			if (methodName != null && methodInfo != null && el.HasChildNodes) {
 				foreach (XmlNode paramNode in el.ChildNodes) {
 					XmlElement paramEl = paramNode as XmlElement;
 					if (paramEl != null && paramEl.Name == "param") {
 						string key = paramEl.GetAttribute ("key");
-						System.Type type = System.Type.GetType(paramEl.GetAttribute("type"));
-						Parameters[key].Type = type;
-						string value = paramEl.GetAttribute("value");
-						Parameters[key].Value = TypeDescriptor.GetConverter(type).ConvertFrom(value);
+
+						// When a method signature changes, a serialized parameter might be gone, so we check for its existance
+						if (Parameters.ContainsKey(key)) {
+							System.Type type = System.Type.GetType(paramEl.GetAttribute("type"));
+							Parameters[key].Type = type;
+							string value = paramEl.GetAttribute("value");
+							Parameters[key].Value = TypeDescriptor.GetConverter(type).ConvertFrom(value);
+						}
+
 					}
 				}
 			}
 		}
+
+		public Action DeserializeTest(string xml)
+		{
+			XmlSerializer serializer = new XmlSerializer(typeof(Action));
+			using (TextReader textReader = new StringReader(xml))
+			{
+				return (Action) serializer.Deserialize(textReader);
+			}
+		}
+
+		public string SerializeTest ()
+		{
+			StringBuilder xml = new StringBuilder();
+
+			XmlSerializer serializer = new XmlSerializer(typeof(Action));
+			using (TextWriter textWriter = new StringWriter(xml))
+			{
+				serializer.Serialize(textWriter, this);
+			}
+			return xml.ToString();
+		}
+
 		
 		// Runtime
 		private static Dictionary<string, ActionLibrary> ActionLibraries = new Dictionary<string, ActionLibrary>();

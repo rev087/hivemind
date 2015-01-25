@@ -91,8 +91,14 @@ namespace Hivemind {
 
 			if (node is Root) { DrawInspector ((Root) node); }
 			else if (node is Action) { DrawInspector ((Action) node); }
+			else if (node is Selector) { DrawInspector ((Selector) node); }
 			else if (node is Sequence) { DrawInspector ((Sequence) node); }
+			else if (node is Parallel) { DrawInspector ((Parallel) node); }
 			else if (node is Repeater) { DrawInspector ((Repeater) node); }
+			else if (node is RandomSelector) { DrawInspector ((RandomSelector) node); }
+			else if (node is UntilSucceed) { DrawInspector ((UntilSucceed) node); }
+			else if (node is Inverter) { DrawInspector ((Inverter) node); }
+			else if (node is Succeeder) { DrawInspector ((Succeeder) node); }
 
 			if (GUI.changed) {
 				 BTEditorManager.Manager.Dirty();
@@ -187,14 +193,72 @@ namespace Hivemind {
 			return null;
 		}
 
+		public void DrawInspector(Selector node) {
+			EditorGUILayout.LabelField(new GUIContent("Selector"), TitleStyle);
+			EditorGUILayout.Space ();
+			string message = "The Selector node (aka Priority) ticks its children sequentially from left to right, until one of them returns SUCCESS, RUNNING or ERROR. If all children return the failure state, the priority also returns FAILURE.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+		}
+
 		public void DrawInspector(Sequence node) {
 			EditorGUILayout.LabelField(new GUIContent("Sequence"), TitleStyle);
+			EditorGUILayout.Space ();
+			string message = "The Sequence node ticks its children sequentially from left to right, until one of them returns FAILURE, RUNNING or ERROR. If all children return the success state, the sequence also returns SUCCESS.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+		}
+
+		public void DrawInspector(Parallel node) {
+			EditorGUILayout.LabelField(new GUIContent("Parallel"), TitleStyle);
+			EditorGUILayout.Space ();
+			string message = "The parallel node ticks all children sequentially from left to right, regardless of their return states. It returns SUCCESS if the number of succeeding children is larger than a local constant S, FAILURE if the number of failing children is larger than a local constant F or RUNNING otherwise.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+			EditorGUILayout.HelpBox("Not yet implemented!", MessageType.Error);
 		}
 
 		public void DrawInspector(Repeater node) {
 			EditorGUILayout.LabelField(new GUIContent("Repeater"), TitleStyle);
+			EditorGUILayout.Space ();
+			string message = "Repeater decorator sends the tick signal to its child every time that its child returns a SUCCESS or FAILURE.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+			EditorGUILayout.HelpBox("Not yet implemented!", MessageType.Error);
 		}
-		
+
+		public void DrawInspector(Inverter node) {
+			EditorGUILayout.LabelField(new GUIContent("Inveter"), TitleStyle);
+			EditorGUILayout.Space ();
+			string message = "Like the NOT operator, the inverter decorator negates the result of its child node, i.e., SUCCESS state becomes FAILURE, and FAILURE becomes SUCCESS. RUNNING or ERROR states are returned as is.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+			EditorGUILayout.HelpBox("Not yet implemented!", MessageType.Error);
+		}
+
+		public void DrawInspector(Succeeder node) {
+			EditorGUILayout.LabelField(new GUIContent("Succeeder"), TitleStyle);
+			EditorGUILayout.Space ();
+			string message = "Succeeder always returns a SUCCESS, no matter what its child returns.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+			EditorGUILayout.HelpBox("Not yet implemented!", MessageType.Error);
+		}
+
+		public void DrawInspector(UntilSucceed node) {
+			EditorGUILayout.LabelField(new GUIContent("Repeat Until Succeed"), TitleStyle);
+			EditorGUILayout.Space ();
+			string message = "This decorator keeps calling its child until the child returns a SUCCESS value. When this happen, the decorator return a SUCCESS state.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+			EditorGUILayout.HelpBox("Not yet implemented!", MessageType.Error);
+		}
+
+		public void DrawInspector(RandomSelector node) {
+			EditorGUILayout.LabelField(new GUIContent("Random Selector"), TitleStyle);
+			EditorGUILayout.Space ();
+			if (node.ChildCount > 0) {
+				float chance = 100f / node.ChildCount;
+				EditorGUILayout.LabelField(new GUIContent("Each child has a " + chance.ToString ("F1") + "% chance of being selected."), SubtitleStyle);
+			}
+			string message = "The Random Selector sends the tick signal to one of its children, selected at random, and returns the state returned by that child.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+			EditorGUILayout.HelpBox("Not yet implemented!", MessageType.Error);
+		}
+
 		public void DrawError() {
 			EditorGUILayout.LabelField ("Selected node is invalid");
 		}

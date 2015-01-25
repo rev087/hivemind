@@ -36,6 +36,14 @@ namespace Hivemind {
 			Repaint ();
 		}
 
+		void OnEnable() {
+			if (BTEditorManager.Manager) BTEditorManager.Manager.editorWindow = this;
+		}
+
+		void OnDisable() {
+			if (BTEditorManager.Manager) BTEditorManager.Manager.editorWindow = null;
+		}
+
 		void OnGUI() {
 
 			if (BTEditorManager.Manager != null && BTEditorManager.Manager.behaviorTree != null) {
@@ -49,9 +57,12 @@ namespace Hivemind {
 
 				if (view.Draw(position)) Repaint ();
 				
+				view.ResizeCanvas();
+
 			} else {
 				GUI.Label(new Rect(0, 0, 400, 20), "No Behavior Tree loaded");
 			}
+
 		}
 
 		public void ShowContextMenu(Vector2 point, Node node) {

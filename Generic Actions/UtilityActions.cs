@@ -16,7 +16,7 @@ namespace Hivemind {
 
 			foreach (GameObject gameObject in gameObjects) {
 				float distance = Vector3.Distance(gameObject.transform.position, agent.transform.position);
-				if (distance < nearestDistance) {
+				if (distance < maxDistance && distance < nearestDistance) {
 					nearestDistance = distance;
 					nearestGameObject = gameObject;
 				}
@@ -49,6 +49,17 @@ namespace Hivemind {
 			GameObject gameObject = context.Get<GameObject>("gameObject");
 			agent.transform.LookAt (gameObject.transform.position);
 			return Status.Success;
+		}
+
+		[Hivemind.Action]
+		[Hivemind.Expects("gameObject", typeof(GameObject))]
+		public Hivemind.Status ObjectWithinDistance(float radius) {
+			GameObject gameObject = context.Get<GameObject>("gameObject");
+			if (Vector3.Distance(gameObject.transform.position, agent.transform.position) < radius) {
+				return Status.Success;
+			} else {
+				return Status.Failure;
+			}
 		}
 		
 	}

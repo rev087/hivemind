@@ -25,6 +25,7 @@ namespace Hivemind {
 
 		public Editor btInspector;
 		public Editor nodeInspector;
+		public BTEditorWindow editorWindow;
 
 		public Node selectedNode;
 
@@ -78,8 +79,8 @@ namespace Hivemind {
 			Selection.activeObject = btAsset;
 		}
 
-
 		public void Dirty() {
+			if (editorWindow != null) editorWindow.Repaint();
 			btAsset.Serialize(behaviorTree);
 			EditorUtility.SetDirty (btAsset);
 		}
@@ -149,14 +150,16 @@ namespace Hivemind {
 				}
 				parent.ConnectChild(node);
 				SortChildren(parent);
-				Dirty ();
 			} else {
 				float xOffset = position.x % GridRenderer.step.x;
 				float yOffset = position.y % GridRenderer.step.y;
 				node.editorPosition = new Vector2(position.x - xOffset, position.y - yOffset);
-				Dirty ();
 			}
+			Dirty ();
 
+			// Select the newly added node
+			if (editorWindow != null)
+				editorWindow.view.SelectNode(node);
 		}
 
 		public void Connect(Node parent, Node child) {

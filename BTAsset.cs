@@ -130,14 +130,14 @@ namespace Hivemind {
 			else if (nodeType == typeof(Action)) return "action";
 
 			else if (nodeType == typeof(Sequence)) return "sequence";
-			else if (nodeType == typeof(Selector)) return "sequence";
-			else if (nodeType == typeof(RandomSelector)) return "sequence";
-			else if (nodeType == typeof(Parallel)) return "sequence";
+			else if (nodeType == typeof(Selector)) return "selector";
+			else if (nodeType == typeof(RandomSelector)) return "randomselector";
+			else if (nodeType == typeof(Parallel)) return "parallel";
 
-			else if (nodeType == typeof(Repeater)) return "sequence";
-			else if (nodeType == typeof(UntilSucceed)) return "sequence";
-			else if (nodeType == typeof(Succeeder)) return "sequence";
-			else if (nodeType == typeof(Inverter)) return "sequence";
+			else if (nodeType == typeof(Repeater)) return "repeater";
+			else if (nodeType == typeof(UntilSucceed)) return "untilsucceed";
+			else if (nodeType == typeof(Succeeder)) return "succeeder";
+			else if (nodeType == typeof(Inverter)) return "inverter";
 
 			else return "node";
 
