@@ -35,7 +35,6 @@ namespace Hivemind {
 
 			int count = nodes.Count;
 			for (int i = 0; i < count; i++) {
-				// HERE
 				if (nodes[i] != null) {
 					nodeRenderer.Draw (nodes[i], nodes[i] == selectedNode);
 				}
@@ -108,7 +107,6 @@ namespace Hivemind {
 
 					// Loop through nodes and check if their rects contain the mouse position
 					for (int i = 0; i < nodes.Count; i++) {
-						// HERE
 						if (nodes[i] != null && nodeRenderer.rectForNode(nodes[i], scrollPoint).Contains (Event.current.mousePosition)) {
 
 							// Connect a parent to a child
@@ -242,11 +240,11 @@ namespace Hivemind {
 		public void ResizeCanvas() {
 			Rect newCanvas = new Rect(0, 0, editorWindow.position.width, editorWindow.position.height);
 			foreach (Node node in BTEditorManager.Manager.behaviorTree.nodes) {
-				float xOffset = node.editorPosition.x + NodeRenderer.Width + GridRenderer.step.x * 10;
+				float xOffset = node.editorPosition.x + NodeRenderer.Width + GridRenderer.step.x * 2;
 				if (xOffset > newCanvas.width) {
 					newCanvas.width = xOffset;
 				}
-				float yOffset = node.editorPosition.y + NodeRenderer.Height + GridRenderer.step.y * 10;
+				float yOffset = node.editorPosition.y + NodeRenderer.Height + GridRenderer.step.y * 2;
 				if (yOffset > newCanvas.height) {
 					newCanvas.height = yOffset;
 				}
@@ -270,6 +268,10 @@ namespace Hivemind {
 		}
 
 		private void DragNode(Node node, Vector2 newPosition) {
+
+			if (Application.isPlaying) {
+				return;
+			}
 
 			if (node.ChildCount > 0 && !Event.current.shift) {
 				for (int i = 0; i < node.ChildCount; i++) {

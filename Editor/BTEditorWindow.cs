@@ -24,6 +24,8 @@ namespace Hivemind {
 	public class BTEditorWindow : EditorWindow {
 
 		public View view;
+		private GUIStyle _noSelectionStyle;
+		private bool _debugMode;
 
 		[MenuItem("Window/Behavior Tree Editor")]
 		public static void ShowWindow() {
@@ -37,10 +39,17 @@ namespace Hivemind {
 		}
 
 		void OnEnable() {
-			if (BTEditorManager.Manager) BTEditorManager.Manager.editorWindow = this;
+			_noSelectionStyle = new GUIStyle();
+			_noSelectionStyle.fontSize = 24;
+			_noSelectionStyle.alignment = TextAnchor.MiddleCenter;
+			if (BTEditorManager.Manager != null) BTEditorManager.Manager.editorWindow = this;
 		}
 
 		void OnDisable() {
+			if (BTEditorManager.Manager) BTEditorManager.Manager.editorWindow = null;
+		}
+
+		void OnDestroy() {
 			if (BTEditorManager.Manager) BTEditorManager.Manager.editorWindow = null;
 		}
 
@@ -48,27 +57,33 @@ namespace Hivemind {
 
 			if (BTEditorManager.Manager != null && BTEditorManager.Manager.behaviorTree != null) {
 
+				BTEditorManager.Manager.editorWindow = this;
+
 				if (view == null)
 					view = new View(this);
 
-				if (view.nodeInspector != null) {
+				if (view.nodeInspector != null)
 					view.nodeInspector.OnInspectorGUI();
-				}
 
-				if (view.Draw(position)) Repaint ();
+				bool viewNeedsRepaint = view.Draw(position);
+				if (viewNeedsRepaint)
+					Repaint ();
 				
 				view.ResizeCanvas();
 
 			} else {
-				GUI.Label(new Rect(0, 0, 400, 20), "No Behavior Tree loaded");
+				GUI.Label(new Rect(0, 0, position.width, position.height), "No Behavior Tree selected", _noSelectionStyle);
 			}
 
 		}
 
 		public void ShowContextMenu(Vector2 point, Node node) {
 
-			var menu = new GenericMenu();
+			if (Application.isPlaying) {
+				return;
+			}
 
+			var menu = new GenericMenu();
 
 			if (node == null || node.CanConnectChild) {
 

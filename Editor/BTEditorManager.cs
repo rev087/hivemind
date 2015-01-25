@@ -25,12 +25,35 @@ namespace Hivemind {
 
 		public Editor btInspector;
 		public Editor nodeInspector;
+		public BehaviorTreeAgent inspectedAgent;
 		public BTEditorWindow editorWindow;
 
 		public Node selectedNode;
 
-		public BehaviorTree behaviorTree;
+		public BehaviorTree _behaviorTree;
+		public BehaviorTree behaviorTree {
+			get { return _behaviorTree; }
+			set {
+				_behaviorTree = value;
+				if (_behaviorTree != null) {
+					_behaviorTree.nodeWillTick = OnNodeWillTick;
+					_behaviorTree.nodeDidTick = OnNodeDidTick;
+				}
+			}
+		}
+
 		public BTAsset btAsset;
+
+		public void OnNodeWillTick(Node node) {
+			if (inspectedAgent.debugMode) {
+				Debug.Log (node.GetType().Name);
+			}
+		}
+
+		public void OnNodeDidTick(Node node, Status result) {
+			if (editorWindow != null)
+				editorWindow.Repaint();
+		}
 
 		public static BTEditorManager Manager { get; private set; }
 
@@ -80,7 +103,8 @@ namespace Hivemind {
 		}
 
 		public void Dirty() {
-			if (editorWindow != null) editorWindow.Repaint();
+			if (editorWindow != null)
+				editorWindow.Repaint();
 			btAsset.Serialize(behaviorTree);
 			EditorUtility.SetDirty (btAsset);
 		}
@@ -89,57 +113,39 @@ namespace Hivemind {
 
 		public void Add(Node parent, Vector2 position, string nodeType) {
 			
+			Node node = null;
+			
 			switch (nodeType) {
 			case "Action":
-				Action action = (Action) ScriptableObject.CreateInstance<Action>();
-				behaviorTree.nodes.Add (action);
-				PositionNewNode (action, parent, position);
+				node = behaviorTree.CreateNode<Action>();
 				break;
 			case "Inverter":
-				Inverter inverter = (Inverter) ScriptableObject.CreateInstance<Inverter>();
-				behaviorTree.nodes.Add (inverter);
-				PositionNewNode (inverter, parent, position);
+				node = behaviorTree.CreateNode<Inverter>();
 				break;
 			case "Parallel":
-				Parallel parallel = (Parallel) ScriptableObject.CreateInstance<Parallel>();
-				behaviorTree.nodes.Add (parallel);
-				PositionNewNode (parallel, parent, position);
+				node = behaviorTree.CreateNode<Parallel>();
 				break;
 			case "RandomSelector":
-				RandomSelector randomSelector = (RandomSelector) ScriptableObject.CreateInstance<RandomSelector>();
-				behaviorTree.nodes.Add (randomSelector);
-				PositionNewNode (randomSelector, parent, position);
+				node = behaviorTree.CreateNode<RandomSelector>();
 				break;
 			case "Repeater":
-				Repeater repeater = (Repeater) ScriptableObject.CreateInstance<Repeater>();
-				behaviorTree.nodes.Add (repeater);
-				PositionNewNode (repeater, parent, position);
+				node = behaviorTree.CreateNode<Repeater>();
 				break;
 			case "Selector":
-				Selector selector = (Selector) ScriptableObject.CreateInstance<Selector>();
-				behaviorTree.nodes.Add (selector);
-				PositionNewNode (selector, parent, position);
+				node = behaviorTree.CreateNode<Selector>();
 				break;
 			case "Sequence":
-				Sequence sequence = (Sequence) ScriptableObject.CreateInstance<Sequence>();
-				behaviorTree.nodes.Add (sequence);
-				PositionNewNode (sequence, parent, position);
+				node = behaviorTree.CreateNode<Sequence>();
 				break;
 			case "Succeeder":
-				Succeeder succeeder = (Succeeder) ScriptableObject.CreateInstance<Succeeder>();
-				behaviorTree.nodes.Add (succeeder);
-				PositionNewNode (succeeder, parent, position);
+				node = behaviorTree.CreateNode<Succeeder>();
 				break;
 			case "UntilSucceed":
-				UntilSucceed untilsucceed = (UntilSucceed) ScriptableObject.CreateInstance<UntilSucceed>();
-				behaviorTree.nodes.Add (untilsucceed);
-				PositionNewNode (untilsucceed, parent, position);;
+				node = behaviorTree.CreateNode<UntilSucceed>();
 				break;
 			}
-			
-		}
 
-		private void PositionNewNode(Node node, Node parent, Vector2 position) {
+			behaviorTree.nodes.Add (node);
 
 			if (parent != null && parent.CanConnectChild) {
 				if (parent.ChildCount > 0) {

@@ -6,16 +6,20 @@ namespace Hivemind {
 	[AddComponentMenu("Miscellaneous/Behavior Tree Agent")]
 	public class BehaviorTreeAgent : MonoBehaviour {
 		public BTAsset btAsset;
-		private BehaviorTree behaviorTree;
-		private Context context;
+		[HideInInspector]
+		public BehaviorTree behaviorTree;
+		public bool debugMode = false;
+		public Context context;
+
+		public void Awake() {
+			behaviorTree = btAsset.Deserialize();
+			context = new Context();
+		}
 
 		public void Start() {
 			if (btAsset == null) {
 				return;
 			}
-			context = new Context();
-			behaviorTree = btAsset.Deserialize();
-
 		}
 
 		public void Update() {

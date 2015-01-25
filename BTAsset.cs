@@ -16,9 +16,7 @@ namespace Hivemind {
 			doc.LoadXml(serializedBehaviorTree);
 
 			// Behavior Tree
-			XmlElement btEl = (XmlElement) doc.GetElementsByTagName("behaviortree").Item(0);
 			BehaviorTree bt = ScriptableObject.CreateInstance<BehaviorTree>();
-			bt.title = btEl.GetAttribute("title");
 
 			// Root
 			XmlElement rootEl = (XmlElement) doc.GetElementsByTagName("root").Item(0);
@@ -40,18 +38,18 @@ namespace Hivemind {
 		private Node DeserializeSubTree(XmlElement el, BehaviorTree bt) {
 			Node node = null;
 
-			if (el.Name == "root") node = ScriptableObject.CreateInstance<Root>();
-			else if (el.Name == "action") node = ScriptableObject.CreateInstance<Action>();
+			if (el.Name == "root") node = bt.CreateNode<Root>();
+			else if (el.Name == "action") node = bt.CreateNode<Action>();
 			
-			else if(el.Name == "sequence") node = ScriptableObject.CreateInstance<Sequence>();
-			else if(el.Name == "selector") node = ScriptableObject.CreateInstance<Selector>();
-			else if(el.Name == "randomselector") node = ScriptableObject.CreateInstance<RandomSelector>();
-			else if(el.Name == "parallel") node = ScriptableObject.CreateInstance<Parallel>();
+			else if(el.Name == "sequence") node = bt.CreateNode<Sequence>();
+			else if(el.Name == "selector") node = bt.CreateNode<Selector>();
+			else if(el.Name == "randomselector") node = bt.CreateNode<RandomSelector>();
+			else if(el.Name == "parallel") node = bt.CreateNode<Parallel>();
 			
-			else if(el.Name == "repeater") node = ScriptableObject.CreateInstance<Repeater>();
-			else if(el.Name == "untilsucceed") node = ScriptableObject.CreateInstance<UntilSucceed>();
-			else if(el.Name == "inverter") node = ScriptableObject.CreateInstance<Inverter>();
-			else if(el.Name == "succeeder") node = ScriptableObject.CreateInstance<Succeeder>();
+			else if(el.Name == "repeater") node = bt.CreateNode<Repeater>();
+			else if(el.Name == "untilsucceed") node = bt.CreateNode<UntilSucceed>();
+			else if(el.Name == "inverter") node = bt.CreateNode<Inverter>();
+			else if(el.Name == "succeeder") node = bt.CreateNode<Succeeder>();
 			
 			else
 				throw new System.NotImplementedException(string.Format ("{0} deserialization not implemented", el.Name));
@@ -84,7 +82,6 @@ namespace Hivemind {
 
 			// Behavior Tree
 			XmlElement btEl = doc.CreateElement("behaviortree");
-			btEl.SetAttribute("title", behaviorTree.title);
 			doc.AppendChild(btEl);
 
 			// Root SubTree

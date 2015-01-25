@@ -26,6 +26,7 @@ namespace Hivemind {
 				context.Set<GameObject> ("gameObject", nearestGameObject);
 				return Status.Success;
 			} else {
+				context.Unset("gameObject");
 				return Status.Failure;
 			}
 		}

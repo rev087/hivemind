@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEditor;
+using System.Collections.Generic;
 
 namespace Hivemind {
 
 	public class NodeRenderer {
 
 		Texture2D nodeTexture;
+		Texture2D nodeDebugTexture;
 		Texture2D shadowTexture;
 		Color edgeColor = Color.white;
 		Color shadowColor = new Color(0f, 0f, 0f, 0.15f);
@@ -17,25 +19,10 @@ namespace Hivemind {
 		float selMargin = 2f;
 		float selWidth = 2f;
 
-		// Node icons
-		Texture2D rootTex;
-		Texture2D selectorTex;
-		Texture2D succeederTex;
-		Texture2D inverterTex;
-		Texture2D untilSucceedTex;
-		Texture2D actionTex;
-		Texture2D repeaterTex;
-		Texture2D repeaterXTex;
-		Texture2D sequenceTex;
-		Texture2D parallelTex;
-		Texture2D randomSelectorTex;
+		private Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
 
 		public static float Width { get { return GridRenderer.step.x * 6; } }
 		public static float Height { get { return GridRenderer.step.y * 6; } }
-
-		public NodeRenderer() {
-
-		}
 
 		public void Draw(Node node, bool selected) {
 			float shadowOffset = 3;
@@ -66,8 +53,8 @@ namespace Hivemind {
 			GUI.DrawTexture (shadowRect, shadowTexture);
 			
 			// Node
-
 			if (nodeTexture == null) {
+
 				Color colA = new Color(0.765f, 0.765f, 0.765f);
 				Color colB = new Color(0.886f, 0.886f, 0.886f);
 
@@ -79,110 +66,34 @@ namespace Hivemind {
 				nodeTexture.Apply();
 			}
 
-			GUI.DrawTexture (nodeRect, nodeTexture);
+			// Node Debug
+			if (nodeDebugTexture == null) {
+				
+				Color colA = new Color(1.000f, 0.796f, 0.357f);
+				Color colB = new Color(0.894f, 0.443f, 0.008f);
+				
+				nodeDebugTexture = new Texture2D(1, (int)Height);
+				nodeDebugTexture.hideFlags = HideFlags.DontSave;
+				for (int y = 0; y < Height; y++) {
+					nodeDebugTexture.SetPixel (0, y, Color.Lerp (colA, colB, (float)y/75));
+				}
+				nodeDebugTexture.Apply();
+			}
+
+			if (node.behaviorTree.debugMode && node.behaviorTree.currentNode == node) {
+				GUI.DrawTexture (nodeRect, nodeDebugTexture);
+			} else {
+				GUI.DrawTexture (nodeRect, nodeTexture);
+			}
 
 			// Icons
+			DrawNodeIcon(nodeRect, node);
 
-			// Root
-			if (node is Root) {
-				if (rootTex == null) {
-					rootTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Root.png");
-					rootTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), rootTex);
-			}
-
-			// Sequence
-			else if (node is Sequence) {
-				if (sequenceTex == null) {
-					sequenceTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Sequence.png");
-					sequenceTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), sequenceTex);
-			}
-
-			// Succeeder
-			else if (node is Succeeder) {
-				if (succeederTex == null) {
-					succeederTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Succeeder.png");
-					succeederTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), succeederTex);
-			}
-
-			// Selector
-			else if (node is Selector) {
-				if (selectorTex == null) {
-					selectorTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Selector.png");
-					selectorTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), selectorTex);
-			}
-
-			// Repeater
-			else if (node is Repeater) {
-
-				// Infinite
-				if (((Repeater)node).repetitions == 0) {
-					if (repeaterTex == null) {
-						repeaterTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Repeater.png");
-						repeaterTex.hideFlags = HideFlags.DontSave;
-					}
-					GUI.DrawTexture (IconRect (nodeRect), repeaterTex);
-				
-				// Finite
-				} else {
-					if (repeaterXTex == null) {
-						repeaterXTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Repeater X.png");
-						repeaterXTex.hideFlags = HideFlags.DontSave;
-					}
-					GUI.DrawTexture (IconRect (nodeRect), repeaterXTex);
-				}
-			}
-
-			// Until Succeed Repeater
-			else if (node is UntilSucceed) {
-				if (untilSucceedTex == null) {
-					untilSucceedTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Until Succeed.png");
-					untilSucceedTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), untilSucceedTex);
-			}
-
-			// Inverter
-			else if (node is Inverter) {
-				if (inverterTex == null) {
-					inverterTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Inverter.png");
-					inverterTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), inverterTex);
-			}
-
-			// Parallel
-			else if (node is Parallel) {
-				if (parallelTex == null) {
-					parallelTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Parallel.png");
-					parallelTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), parallelTex);
-			}
+			// Debug status
+			DrawStatusIcon(nodeRect, node);
 			
-			// Random Selector
-			else if (node is RandomSelector) {
-				if (randomSelectorTex == null) {
-					randomSelectorTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Random Selector.png");
-					randomSelectorTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), randomSelectorTex);
-			}
-			
-			// Action
-			else if (node is Action) {
-				if (actionTex == null) {
-					actionTex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Action.png");
-					actionTex.hideFlags = HideFlags.DontSave;
-				}
-				GUI.DrawTexture (IconRect (nodeRect), actionTex);
+			// Action title
+			if (node is Action) {
 
 				// Node title
 				string title;
@@ -199,7 +110,6 @@ namespace Hivemind {
 
 			// Selection highlight
 			if (selected) {
-
 				if (selectionTexture == null) {
 					selectionTexture = new Texture2D(1, 1);
 					selectionTexture.hideFlags = HideFlags.DontSave;
@@ -216,13 +126,46 @@ namespace Hivemind {
 
 		}
 
-		Rect IconRect(Rect nodeRect) {
+		private void DrawStatusIcon(Rect nodeRect, Node node) {
+
+			if (node.lastStatus != null) {
+
+				string status = node.lastStatus.ToString();
+
+				if (!textures.ContainsKey (status)) {
+					Texture2D tex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Status/"+status+".png");
+					if (tex == null) {
+						Debug.LogWarning (status + ".png not found");
+						return;
+					}
+					tex.hideFlags = HideFlags.DontSave;
+					textures.Add (status, tex);
+				}
+
+				Rect statusRect = new Rect(nodeRect.x, nodeRect.y, 32f, 32f);
+				GUI.DrawTexture(statusRect, textures[status]);
+
+			}
+		}
+
+		private void DrawNodeIcon(Rect nodeRect, Node node) {
 			int width = NearestPowerOfTwo (nodeRect.width);
 			int height = NearestPowerOfTwo (nodeRect.height);
 			float xOffset = (nodeRect.width - width) / 2;
 			float yOffset = (nodeRect.height - height) / 2;
 			Rect iconRect = new Rect(nodeRect.x + xOffset, nodeRect.y + yOffset, width, height);
-			return iconRect;
+
+			string nodeName = node.GetType ().Name;
+			if (!textures.ContainsKey (nodeName)) {
+				Texture2D tex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Nodes/"+nodeName+".png");
+				if (tex == null) {
+					Debug.LogWarning (nodeName + ".png not found");
+					return;
+				}
+				tex.hideFlags = HideFlags.DontSave;
+				textures.Add (nodeName, tex);
+			}
+			GUI.DrawTexture (iconRect, textures[nodeName]);
 		}
 
 		int NearestPowerOfTwo(float value) {

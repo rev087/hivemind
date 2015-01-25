@@ -14,28 +14,35 @@ namespace Hivemind {
 			NavMeshHit sampledDestination;
 			NavMesh.SamplePosition(go.transform.position, out sampledDestination, 10f, 1);
 			float distance = Vector3.Distance (agent.transform.position, sampledDestination.position);
-			
-			// Planning path or moving towards destination
-			if (navMeshAgent.pathPending || navMeshAgent.hasPath && distance > navMeshAgent.stoppingDistance) {
-				return Status.Running;
-			}
-			
-			// Reached destination
-			if (distance <= navMeshAgent.stoppingDistance) {
-				anim.SetBool ("IsWalking", false);
-				return Status.Success;
-			}
-			
-			// Can't reach destination
-			else if (navMeshAgent.pathStatus == NavMeshPathStatus.PathInvalid) {
-				return Status.Failure;
-			}
-			
-			// Set destination
-			else {
+
+			if (!context.Get<bool>("didSetDestination", false)) {
+				
+				// Set destination
 				navMeshAgent.SetDestination(sampledDestination.position);
 				anim.SetBool ("IsWalking", true);
+				context.Set<bool>("didSetDestination", true);
 				return Status.Running;
+
+			}
+			else {
+				
+				// Planning path or moving towards destination
+				if (navMeshAgent.pathPending || distance > navMeshAgent.stoppingDistance) {
+					return Status.Running;
+				}
+				
+				// Reached destination
+				else if (distance <= navMeshAgent.stoppingDistance) {
+					anim.SetBool ("IsWalking", false);
+					context.Unset("didSetDestination");
+					return Status.Success;
+				}
+				
+				// Can't reach destination
+				anim.SetBool ("IsWalking", false);
+				context.Unset("didSetDestination");
+				return Status.Failure;
+
 			}
 		}
 

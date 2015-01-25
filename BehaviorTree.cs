@@ -2,7 +2,6 @@
 using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
 
 /*
  * Best practices for serialization:
@@ -27,6 +26,10 @@ namespace Hivemind {
 
 	public class Context {
 		private Dictionary<string, object> context = new Dictionary<string, object>();
+
+		public Dictionary<string, object> All {
+			get { return context; }
+		}
 
 		public bool ContainsKey(string key) {
 			return context.ContainsKey(key);
@@ -67,13 +70,28 @@ namespace Hivemind {
 			"Sequence", "Succeeder", "UntilSucceed"
 		};
 
-		public string title;
 		public Root rootNode;
 		public List<Node> nodes = new List<Node>();
+
+		public bool debugMode = false;
+		public Node currentNode = null;
+
+		public delegate void NodeWillTick(Node node);
+		public delegate void NodeDidTick(Node node, Status result);
+
+		public NodeWillTick nodeWillTick;
+		public NodeDidTick nodeDidTick;
 
 		public void SetRoot(Root root) {
 			rootNode = root;
 			nodes.Add(root);
+			root.behaviorTree = this;
+		}
+
+		public T CreateNode<T>() where T : Node {
+			T node = (T) ScriptableObject.CreateInstance<T>();
+			node.behaviorTree = this;
+			return node;
 		}
 		
 		// Lifecycle
@@ -88,7 +106,28 @@ namespace Hivemind {
 		}
 
 		public Status Tick(GameObject agent, Context context) {
+			BehaviorTreeAgent btAgent = agent.GetComponent<BehaviorTreeAgent>();
+			if (btAgent) {
+				debugMode = btAgent.debugMode;
+			}
+
 			return rootNode.Tick(agent, context);
+		}
+
+		public Status Tick(Node node, GameObject agent, Context context) {
+
+			if (nodeWillTick != null && node != currentNode)
+				nodeWillTick(node);
+
+			Status result = node.Tick(agent, context);
+
+			if (nodeDidTick != null)
+				nodeDidTick(node, result);
+
+			currentNode = node;
+			node.lastStatus = result;
+
+			return result;
 		}
 	}
 
@@ -99,6 +138,12 @@ namespace Hivemind {
 		// Editor settings
 		[SerializeField]
 		public Vector2 editorPosition;
+
+		// The Behavior Tree this node belongs too
+		public BehaviorTree behaviorTree;
+
+		// Used by the debugger to visually display the last status returned
+		public Status? lastStatus;
 		
 		// Child connections
 		public virtual void ConnectChild(Node child) {}
@@ -137,6 +182,16 @@ namespace Hivemind {
 			} else {
 				Debug.LogWarning(string.Format ("Attempted unparenting {0} while it has no parent"));
 			}
+		}
+
+		public List<Node> Ancestors() {
+			List<Node> ancestorNodes = new List<Node>();
+			if (parent != null) parent.Ancestors (ref ancestorNodes);
+			return ancestorNodes;
+		}
+		private void Ancestors(ref List<Node> ancestorNodes) {
+			ancestorNodes.Add (this);
+			if (parent != null) parent.Ancestors (ref ancestorNodes);
 		}
 		
 		// All connections
@@ -226,7 +281,7 @@ namespace Hivemind {
 
 		public override Status Tick(GameObject agent, Context context)
 		{
-			return _child.Tick(agent, context);
+			return behaviorTree.Tick (_child, agent, context);
 		}
 	}
 	
@@ -281,7 +336,7 @@ namespace Hivemind {
 			for (int i = lastRunning; i < ChildCount; i++)
 			{
 				Node node = Children[i];
-				Status status = node.Tick(agent, context);
+				Status status = behaviorTree.Tick(node, agent, context);
 				if (status != Status.Failure)
 				{
 					lastRunning = status == Status.Running ? i : 0;
@@ -312,7 +367,7 @@ namespace Hivemind {
 			for ( int i = lastRunning; i < ChildCount; i++)
 			{
 				Node node = Children[i];
-				Status status = node.Tick(agent, context);
+				Status status = behaviorTree.Tick(node, agent, context);
 				if (status != Status.Success)
 				{
 					lastRunning =  status == Status.Running ? i : 0;

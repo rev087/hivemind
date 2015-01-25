@@ -62,10 +62,6 @@ namespace Hivemind {
 
 				EditorGUILayout.Space ();
 
-				manager.behaviorTree.title = EditorGUILayout.TextField("Title", manager.behaviorTree.title);
-
-				EditorGUILayout.Space ();
-				
 				if (GUILayout.Button ("Show Behavior Tree editor")) {
 					BTEditorWindow.ShowWindow ();
 				}
