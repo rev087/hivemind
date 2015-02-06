@@ -75,6 +75,7 @@ namespace Hivemind {
 
 		public bool debugMode = false;
 		public Node currentNode = null;
+		public int TotalTicks { get; private set; }
 
 		public delegate void NodeWillTick(Node node);
 		public delegate void NodeDidTick(Node node, Status result);
@@ -111,7 +112,12 @@ namespace Hivemind {
 				debugMode = btAgent.debugMode;
 			}
 
-			return rootNode.Tick(agent, context);
+			TotalTicks++;
+
+			Status result = rootNode.Tick(agent, context);
+			rootNode.lastStatus = result;
+			rootNode.lastTick = TotalTicks;
+			return result;
 		}
 
 		public Status Tick(Node node, GameObject agent, Context context) {
@@ -126,7 +132,7 @@ namespace Hivemind {
 
 			currentNode = node;
 			node.lastStatus = result;
-
+			node.lastTick = TotalTicks;
 			return result;
 		}
 	}
@@ -144,6 +150,7 @@ namespace Hivemind {
 
 		// Used by the debugger to visually display the last status returned
 		public Status? lastStatus;
+		public int lastTick = 0;
 		
 		// Child connections
 		public virtual void ConnectChild(Node child) {}
@@ -290,6 +297,7 @@ namespace Hivemind {
 	[System.Serializable]
 	public abstract class Composite : Node
 	{
+
 		// Child connections
 		[SerializeField]
 		List<Node> _children = new List<Node>();

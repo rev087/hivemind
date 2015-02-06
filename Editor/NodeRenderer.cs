@@ -127,8 +127,9 @@ namespace Hivemind {
 		}
 
 		private void DrawStatusIcon(Rect nodeRect, Node node) {
+			EditorGUI.LabelField(new Rect(nodeRect.x, nodeRect.y + 58f, nodeRect.width, nodeRect.height), node.lastTick.ToString ());
 
-			if (node.lastStatus != null) {
+			if (node.lastStatus != null && BTEditorManager.Manager.behaviorTree.TotalTicks - node.lastTick < 150) {
 
 				string status = node.lastStatus.ToString();
 

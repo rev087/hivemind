@@ -293,9 +293,11 @@ namespace Hivemind {
 		private static Dictionary<string, ActionLibrary> ActionLibraries = new Dictionary<string, ActionLibrary>();
 		public override Status Tick(GameObject agent, Context context) {
 
+			string actionLibID = _monoScriptClass + "-" + behaviorTree.GetInstanceID();
+
 			ActionLibrary lib;
-			if (ActionLibraries.ContainsKey(_monoScriptClass)) {
-				lib = ActionLibraries[_monoScriptClass];
+			if (ActionLibraries.ContainsKey(actionLibID)) {
+				lib = ActionLibraries[actionLibID];
 			} else {
 				System.Type type = System.Type.GetType (_monoScriptClass);
 				if (type == null) {
@@ -304,6 +306,7 @@ namespace Hivemind {
 				}
 				
 				lib = (ActionLibrary) System.Activator.CreateInstance (type);
+				ActionLibraries[actionLibID] = lib;
 			}
 
 			if (lib != null) {
