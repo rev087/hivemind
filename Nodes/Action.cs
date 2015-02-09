@@ -304,15 +304,13 @@ namespace Hivemind {
 					Debug.LogWarning("An action node does not have an associated ActionLibrary");
 					return Status.Error;
 				}
-				
-				lib = (ActionLibrary) System.Activator.CreateInstance (type);
-				ActionLibraries[actionLibID] = lib;
-			}
 
-			if (lib != null) {
+				lib = (ActionLibrary) System.Activator.CreateInstance (type);
 				lib.agent = agent;
 				lib.context = context;
-
+				MethodInfo actionMethod = type.GetMethod ("Start");
+				if (actionMethod != null) actionMethod.Invoke (lib, null);
+				ActionLibraries[actionLibID] = (ActionLibrary) lib;
 			}
 			
 			if (methodInfo == null) {
