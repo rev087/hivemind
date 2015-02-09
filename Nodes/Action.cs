@@ -225,22 +225,18 @@ namespace Hivemind {
 		}
 		
 		// Serialization
-		public XmlElement Serialize(XmlDocument doc) {
-			XmlElement el = doc.CreateElement("action");
-			el.SetAttribute("editorx", editorPosition.x.ToString());
-			el.SetAttribute("editory", editorPosition.y.ToString());
+		public void Serialize(ref XmlElement el) {
 			el.SetAttribute("script", _monoScriptClass);
 			el.SetAttribute("scriptpath", _monoScriptPath);
 			el.SetAttribute("method", methodName);
 			foreach (KeyValuePair<string, ActionParameter> parameter in Parameters)
 			{
-				XmlElement paramEl = doc.CreateElement("param");
+				XmlElement paramEl = el.OwnerDocument.CreateElement("param");
 				paramEl.SetAttribute("key", parameter.Key);
 				paramEl.SetAttribute("type", parameter.Value.Type.ToString ());
 				paramEl.SetAttribute("value", parameter.Value.ValueToString ());
 				el.AppendChild (paramEl);
 			}
-			return el;
 		}
 		
 		// Deserialization
@@ -266,28 +262,6 @@ namespace Hivemind {
 				}
 			}
 		}
-
-		public Action DeserializeTest(string xml)
-		{
-			XmlSerializer serializer = new XmlSerializer(typeof(Action));
-			using (TextReader textReader = new StringReader(xml))
-			{
-				return (Action) serializer.Deserialize(textReader);
-			}
-		}
-
-		public string SerializeTest ()
-		{
-			StringBuilder xml = new StringBuilder();
-
-			XmlSerializer serializer = new XmlSerializer(typeof(Action));
-			using (TextWriter textWriter = new StringWriter(xml))
-			{
-				serializer.Serialize(textWriter, this);
-			}
-			return xml.ToString();
-		}
-
 		
 		// Runtime
 		private static Dictionary<string, ActionLibrary> ActionLibraries = new Dictionary<string, ActionLibrary>();

@@ -199,13 +199,19 @@ namespace Hivemind {
 		public void DrawInspector(Sequence node) {
 			EditorGUILayout.LabelField(new GUIContent("Sequence"), TitleStyle);
 			EditorGUILayout.Space ();
-			string message = "The Sequence node ticks its children sequentially from left to right, until one of them returns FAILURE, RUNNING or ERROR. If all children return the success state, the sequence also returns SUCCESS.";
+			node.rememberRunning = EditorGUILayout.Toggle("Remember running child", node.rememberRunning);
+			string message = "The Sequence node ticks its children sequentially from left to right, until one of them returns FAILURE, RUNNING or ERROR, at which point the Sequence returns that state. If all children return the success state, the sequence also returns SUCCESS.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+			message = "If \"Remember running child\" is on, when a child returns RUNNING the Sequence will remember that child, and in future ticks it will skip directly to that child until it returns something other than RUNNING.";
 			EditorGUILayout.HelpBox(message, MessageType.Info);
 		}
 
 		public void DrawInspector(Parallel node) {
 			EditorGUILayout.LabelField(new GUIContent("Parallel"), TitleStyle);
 			EditorGUILayout.Space ();
+
+
+			node.strategy = (Parallel.ResolutionStrategy) EditorGUILayout.EnumPopup("Return Strategy", node.strategy);
 			string message = "The parallel node ticks all children sequentially from left to right, regardless of their return states. It returns SUCCESS if the number of succeeding children is larger than a local constant S, FAILURE if the number of failing children is larger than a local constant F or RUNNING otherwise.";
 			EditorGUILayout.HelpBox(message, MessageType.Info);
 			EditorGUILayout.HelpBox("Not yet implemented!", MessageType.Error);

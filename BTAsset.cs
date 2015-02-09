@@ -61,6 +61,9 @@ namespace Hivemind {
 			if (node is Action) {
 				((Action) node).Deserialize(el);
 			}
+			else if (node is Sequence) {
+				((Sequence) node).Deserialize(el);
+			}
 			
 			bt.nodes.Add(node);
 
@@ -111,7 +114,10 @@ namespace Hivemind {
 			el.SetAttribute("editory", node.editorPosition.y.ToString());
 
 			if (node is Action) {
-				el = ((Action)node).Serialize(doc);
+				((Action) node).Serialize(ref el);
+			}
+			else if (node is Sequence) {
+				((Sequence) node).Serialize(ref el);
 			}
 
 			parentEl.AppendChild(el);

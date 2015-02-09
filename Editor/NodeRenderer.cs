@@ -157,7 +157,10 @@ namespace Hivemind {
 			Rect iconRect = new Rect(nodeRect.x + xOffset, nodeRect.y + yOffset, width, height);
 
 			string nodeName = node.GetType ().Name;
+			if (node is Sequence && ((Sequence) node).rememberRunning) nodeName = "MemSequence";
+			
 			if (!textures.ContainsKey (nodeName)) {
+
 				Texture2D tex = (Texture2D) EditorGUIUtility.Load ("Hivemind/Nodes/"+nodeName+".png");
 				if (tex == null) {
 					Debug.LogWarning (nodeName + ".png not found");

@@ -2,6 +2,7 @@
 using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 
 /*
  * Best practices for serialization:
@@ -369,10 +370,13 @@ namespace Hivemind {
 	{
 		[SerializeField]
 		int lastRunning = 0;
+
+		public bool rememberRunning = false;
 		
 		public override Status Tick(GameObject agent, Context context)
 		{
-			for ( int i = lastRunning; i < ChildCount; i++)
+			int start = rememberRunning ? lastRunning : 0;
+			for ( int i = start; i < ChildCount; i++)
 			{
 				Node node = Children[i];
 				Status status = behaviorTree.Tick(node, agent, context);
@@ -387,15 +391,62 @@ namespace Hivemind {
 			}
 			return Status.Success;
 		}
+
+		// Serialization
+		public void Serialize(ref XmlElement el) {
+			el.SetAttribute("remember", rememberRunning ? bool.TrueString : bool.FalseString);
+		}
+
+		// Deserialization
+		public void Deserialize(XmlElement el) {
+			rememberRunning = bool.Parse(el.GetAttribute("remember"));
+		}
 	}
 
 	[System.Serializable]
 	public class Parallel : Composite
 	{
+		public enum ResolutionStrategy {
+			FirstSuccess, FirstFailure, FirstResolved, AllResolved
+		}
+		public ResolutionStrategy strategy = ResolutionStrategy.FirstSuccess;
+
+		[SerializeField]
+		List<Node> stillRunning;
+		List<Status> results;
 		
 		public override Status Tick(GameObject agent, Context context)
 		{
-			throw new System.NotImplementedException ();
+			// Initialize stillRunning with all child nodes
+//			if (stillRunning == null) {
+//				results = new List<Status>();
+//				stillRunning = new List<Node>();
+//				for ( int i = 0; i < ChildCount; i++) {
+//					stillRunning.Add (Children[i]);
+//				}
+//			}
+//
+//			foreach (Node node in stillRunning) {
+//				Status status = behaviorTree.Tick (node, agent, context);
+//				if (status != Status.Running) {
+//					stillRunning.Remove (node);
+//				}
+//				results.Add (status);
+//
+//				if (strategy == ResolutionStrategy.FirstSuccess && status == Status.Success)
+//					return Status.Success;
+//				else if (strategy == ResolutionStrategy.FirstFailure && status == Status.Failure)
+//					return Status.Failure;
+//				else if (status == Status.Error)
+//					return Status.Error;
+//			}
+//
+//			switch(strategy) {
+//			case ResolutionStrategy.FirstSuccess:
+//				break;
+//			}
+
+			return Status.Error;
 		}
 	}
 	
