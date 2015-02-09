@@ -58,12 +58,9 @@ namespace Hivemind {
 			float y = float.Parse (el.GetAttribute("editory"));
 			node.editorPosition = new Vector2(x, y);
 			
-			if (node is Action) {
-				((Action) node).Deserialize(el);
-			}
-			else if (node is Sequence) {
-				((Sequence) node).Deserialize(el);
-			}
+			if (node is Action) ((Action) node).Deserialize(el);
+			else if (node is Sequence) ((Sequence) node).Deserialize(el);
+			else if (node is Selector) ((Selector) node).Deserialize(el);
 			
 			bt.nodes.Add(node);
 
@@ -113,12 +110,9 @@ namespace Hivemind {
 			el.SetAttribute("editorx", node.editorPosition.x.ToString());
 			el.SetAttribute("editory", node.editorPosition.y.ToString());
 
-			if (node is Action) {
-				((Action) node).Serialize(ref el);
-			}
-			else if (node is Sequence) {
-				((Sequence) node).Serialize(ref el);
-			}
+			if (node is Action) ((Action) node).Serialize(ref el);
+			else if (node is Sequence) ((Sequence) node).Serialize(ref el);
+			else if (node is Selector) ((Selector) node).Serialize(ref el);
 
 			parentEl.AppendChild(el);
 

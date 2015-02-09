@@ -129,7 +129,7 @@ namespace Hivemind {
 		private void DrawStatusIcon(Rect nodeRect, Node node) {
 			EditorGUI.LabelField(new Rect(nodeRect.x, nodeRect.y + 58f, nodeRect.width, nodeRect.height), node.lastTick.ToString ());
 
-			if (node.lastStatus != null && BTEditorManager.Manager.behaviorTree.TotalTicks - node.lastTick < 150) {
+			if (node.lastStatus != null && BTEditorManager.Manager.behaviorTree.TotalTicks == node.lastTick) {
 
 				string status = node.lastStatus.ToString();
 
@@ -158,6 +158,7 @@ namespace Hivemind {
 
 			string nodeName = node.GetType ().Name;
 			if (node is Sequence && ((Sequence) node).rememberRunning) nodeName = "MemSequence";
+			if (node is Selector && ((Selector) node).rememberRunning) nodeName = "MemSelector";
 			
 			if (!textures.ContainsKey (nodeName)) {
 

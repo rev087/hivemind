@@ -192,7 +192,10 @@ namespace Hivemind {
 		public void DrawInspector(Selector node) {
 			EditorGUILayout.LabelField(new GUIContent("Selector"), TitleStyle);
 			EditorGUILayout.Space ();
-			string message = "The Selector node (aka Priority) ticks its children sequentially from left to right, until one of them returns SUCCESS, RUNNING or ERROR. If all children return the failure state, the priority also returns FAILURE.";
+			node.rememberRunning = EditorGUILayout.Toggle("Remember running child", node.rememberRunning);
+			string message = "The Selector node ticks its children sequentially from left to right, until one of them returns SUCCESS, RUNNING or ERROR, at which point it returns that state. If all children return the failure state, the priority also returns FAILURE.";
+			EditorGUILayout.HelpBox(message, MessageType.Info);
+			message = "If \"Remember running chikd\" is on, when a child returns RUNNING the Selector will remember that child, and in future ticks it will skip directly to that child until it returns something other than RUNNING.";
 			EditorGUILayout.HelpBox(message, MessageType.Info);
 		}
 

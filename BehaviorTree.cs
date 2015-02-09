@@ -339,10 +339,13 @@ namespace Hivemind {
 	{
 		[SerializeField]
 		int lastRunning = 0;
+
+		public bool rememberRunning = false;
 		
 		public override Status Tick(GameObject agent, Context context)
 		{
-			for (int i = lastRunning; i < ChildCount; i++)
+			int start = rememberRunning ? lastRunning : 0;
+			for (int i = start; i < ChildCount; i++)
 			{
 				Node node = Children[i];
 				Status status = behaviorTree.Tick(node, agent, context);
@@ -353,6 +356,16 @@ namespace Hivemind {
 				}
 			}
 			return Status.Failure;
+		}
+
+		// Serialization
+		public void Serialize(ref XmlElement el) {
+			el.SetAttribute("remember", rememberRunning ? bool.TrueString : bool.FalseString);
+		}
+		
+		// Deserialization
+		public void Deserialize(XmlElement el) {
+			rememberRunning = bool.Parse(el.GetAttribute("remember"));
 		}
 	}
 
