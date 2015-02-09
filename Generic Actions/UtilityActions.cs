@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEditor;
 
 namespace Hivemind {
-	
+
+	[ExecuteInEditMode]
 	public class UtilityActions : ActionLibrary {
 
 		[Hivemind.Action]
@@ -61,6 +63,15 @@ namespace Hivemind {
 			} else {
 				return Status.Failure;
 			}
+		}
+
+		[Hivemind.Action]
+		[Hivemind.Expects("gameObject", typeof(GameObject))]
+		public Hivemind.Status DestroyGameObject() {
+			GameObject gameObject = context.Get<GameObject>("gameObject");
+			GameObject.DestroyObject(gameObject);
+			context.Unset ("gameObject");
+			return Status.Success;
 		}
 		
 	}

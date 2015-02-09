@@ -7,48 +7,41 @@ namespace Hivemind {
 		
 		[Hivemind.Action]
 		[Hivemind.Expects("gameObject", typeof(GameObject))]
-		public Hivemind.Status MoveToGameObject() {
+		public Hivemind.Status MoveToGameObject(string animationFloat, float animationFactor) {
 			GameObject go = context.Get<GameObject> ("gameObject");
 			NavMeshAgent navMeshAgent = agent.GetComponent<NavMeshAgent>();
 			Animator anim = agent.GetComponent<Animator>();
 			NavMeshHit sampledDestination;
-			NavMesh.SamplePosition(go.transform.position, out sampledDestination, 10f, 1);
+			NavMesh.SamplePosition(go.transform.position, out sampledDestination, 3f, 1);
 			float distance = Vector3.Distance (agent.transform.position, sampledDestination.position);
+			Debug.DrawRay (sampledDestination.position, Vector3.up, Color.green);
 
-			if (!context.Get<bool>("didSetDestination", false)) {
-				
-				// Set destination
-				navMeshAgent.SetDestination(sampledDestination.position);
-				anim.SetBool ("IsWalking", true);
-				context.Set<bool>("didSetDestination", true);
+			// Planning path
+			if (navMeshAgent.pathPending) {
 				return Status.Running;
-
 			}
-			else {
-				
-				// Planning path or moving towards destination
-				if (navMeshAgent.pathPending || distance > navMeshAgent.stoppingDistance) {
-					return Status.Running;
-				}
-				
-				// Reached destination
-				else if (distance <= navMeshAgent.stoppingDistance) {
-					anim.SetBool ("IsWalking", false);
-					context.Unset("didSetDestination");
-					return Status.Success;
-				}
-				
-				// Can't reach destination
-				anim.SetBool ("IsWalking", false);
-				context.Unset("didSetDestination");
-				return Status.Failure;
 
+			// Moving
+			else if (distance > navMeshAgent.stoppingDistance) {
+				navMeshAgent.SetDestination(sampledDestination.position);
+				if (animationFloat != null) anim.SetFloat (animationFloat, animationFactor);
+				return Status.Running;
+			}
+			
+			// Reached destination
+			else if (distance <= navMeshAgent.stoppingDistance) {
+				if (animationFloat != null) anim.SetFloat (animationFloat, 0f);
+				return Status.Success;
+			}
+
+			else {
+				return Status.Error;
 			}
 		}
 
 		[Hivemind.Action]
 		[Hivemind.Expects("position", typeof(Vector3))]
-		public Hivemind.Status MoveToPosition() {
+		public Hivemind.Status MoveToPosition(string animationFloat, float animationFactor) {
 			
 			NavMeshAgent navMeshAgent = agent.GetComponent<NavMeshAgent>();
 			Animator anim = agent.GetComponent<Animator>();
@@ -57,14 +50,21 @@ namespace Hivemind {
 			NavMesh.SamplePosition(position, out sampledDestination, 10f, 1);
 			float distance = Vector3.Distance (agent.transform.position, sampledDestination.position);
 			
-			// Planning path or moving towards destination
-			if (navMeshAgent.pathPending || navMeshAgent.hasPath && distance > navMeshAgent.stoppingDistance) {
+			// Planning path
+			if (navMeshAgent.pathPending) {
+				return Status.Running;
+			}
+
+			// Moving towards destination
+			else if (distance > navMeshAgent.stoppingDistance) {
+				navMeshAgent.SetDestination(sampledDestination.position);
+				if (animationFloat != null) anim.SetFloat (animationFloat, animationFactor);
 				return Status.Running;
 			}
 			
 			// Reached destination
 			else if (distance <= navMeshAgent.stoppingDistance) {
-				anim.SetBool ("IsWalking", false);
+				if (animationFloat != null) anim.SetFloat (animationFloat, 0f);
 				return Status.Success;
 			}
 			
@@ -75,9 +75,7 @@ namespace Hivemind {
 			
 			// Set destination
 			else {
-				navMeshAgent.SetDestination(sampledDestination.position);
-				anim.SetBool ("IsWalking", true);
-				return Status.Running;
+				return Status.Error;
 			}
 		}
 
