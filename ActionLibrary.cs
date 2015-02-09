@@ -55,7 +55,7 @@ namespace Hivemind {
 		}
 	}
 
-	public class ActionLibrary {
+	public abstract class ActionLibrary {
 		public GameObject agent;
 		public Context context;
 	}
