@@ -8,4 +8,4 @@
 - <del>Implement the _Outputs_ and _Expects_ attributes so action methods can specify context variables they expect or populate. Follows the format:</del>  
 	`[Hivemind.Outputs("gameObject", typeof(GameObject))]`  
 	`[Hivemind.Expects("position", typeof(Vector3))]`
-- When a node is selected in the _BTEditorWindow_, the inspector should display all its inputs and outputs.
+- <del>When a node is selected in the _BTEditorWindow_, the inspector should display all its inputs and outputs.</del>
