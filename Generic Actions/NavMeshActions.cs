@@ -49,6 +49,8 @@ namespace Hivemind {
 			Vector3 position = context.Get<Vector3>("position");
 			NavMesh.SamplePosition(position, out sampledDestination, 10f, 1);
 			float distance = Vector3.Distance (agent.transform.position, sampledDestination.position);
+
+			Debug.DrawLine(agent.transform.position, sampledDestination.position, Color.green);
 			
 			// Planning path
 			if (navMeshAgent.pathPending) {
@@ -82,7 +84,8 @@ namespace Hivemind {
 		[Hivemind.Action]
 		[Hivemind.Outputs("position", typeof(Vector3))]
 		public Hivemind.Status GetRandomPosition(float radius) {
-			Vector2 position = Random.insideUnitCircle * radius;
+			Vector2 r = Random.insideUnitCircle;
+			Vector3 position = agent.transform.position + new Vector3(r.x, 0f, r.y) * radius;
 			NavMeshHit navMeshHit;
 			bool sampleSuccessful = NavMesh.SamplePosition(position, out navMeshHit, 5f, 1);
 			if (sampleSuccessful) {
