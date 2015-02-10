@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -289,7 +288,11 @@ namespace Hivemind {
 
 		public override Status Tick(GameObject agent, Context context)
 		{
-			return behaviorTree.Tick (_child, agent, context);
+			Status result = Status.Error;
+			if (_child != null) {
+				result = behaviorTree.Tick (_child, agent, context);
+			}
+			return result;
 		}
 	}
 	
