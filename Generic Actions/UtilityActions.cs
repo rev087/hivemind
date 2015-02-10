@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEditor;
 
 namespace Hivemind {
-
-	[ExecuteInEditMode]
+	
 	public class UtilityActions : ActionLibrary {
 
 		[Hivemind.Action]
