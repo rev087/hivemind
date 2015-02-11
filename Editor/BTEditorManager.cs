@@ -23,12 +23,14 @@ namespace Hivemind {
 
 	public class BTEditorManager : ScriptableObject {
 
-		public Editor btInspector;
-		public Editor nodeInspector;
+		public Editor btInspector; // Inspector for the BehaviorTree asset
+		public Editor nodeInspector; // Inspector for selected nodes
 		public BehaviorTreeAgent inspectedAgent;
 		public BTEditorWindow editorWindow;
 
 		public Node selectedNode;
+		public static BTAsset QueuedSelectionFor;
+		public static string QueuedSelectionGUID;
 
 		public BehaviorTree _behaviorTree;
 		public BehaviorTree behaviorTree {
@@ -62,6 +64,15 @@ namespace Hivemind {
 				Manager = (BTEditorManager) ScriptableObject.CreateInstance (typeof(BTEditorManager));
 				Manager.behaviorTree = bt;
 				Manager.btAsset = asset;
+
+				// When the user clicks on a node to select it, while viewing the behavior tree associated with a GO with a BehaviorTreeAgent component
+				// we store the selection then switch the Unity Editor selection over to the appropriate BTAsset. Once the Manager for the BTAsset is
+				// created (here!) we perform the original selection.
+				if (QueuedSelectionFor == asset) {
+					Manager.SelectNode(bt.GetNodeByGUID(QueuedSelectionGUID));
+					QueuedSelectionFor = null;
+					QueuedSelectionGUID = null;
+				}
 			}
 			return Manager;
 		}
@@ -144,9 +155,13 @@ namespace Hivemind {
 				node = behaviorTree.CreateNode<UntilSucceed>();
 				break;
 			}
+			
+			// GUID
+			node.GUID = System.Guid.NewGuid().ToString();
 
 			behaviorTree.nodes.Add (node);
 
+			// Editor Position
 			if (parent != null && parent.CanConnectChild) {
 				if (parent.ChildCount > 0) {
 					Node lastSibling = parent.Children[parent.ChildCount - 1];
@@ -161,11 +176,11 @@ namespace Hivemind {
 				float yOffset = position.y % GridRenderer.step.y;
 				node.editorPosition = new Vector2(position.x - xOffset, position.y - yOffset);
 			}
+
 			Dirty ();
 
 			// Select the newly added node
-			if (editorWindow != null)
-				editorWindow.view.SelectNode(node);
+			if (editorWindow != null) SelectNode(node);
 		}
 
 		public void Connect(Node parent, Node child) {
@@ -200,6 +215,34 @@ namespace Hivemind {
 			Composite parentComposite = parent as Composite;
 			if (parentComposite != null)
 				parentComposite.SortChildren();
+		}
+
+		public void SelectNode(Node node) {
+
+			// Valid selection, but BTAsset is not selected in the project view, queue selection
+			if (node != null && Selection.activeObject != btAsset) {
+				QueuedSelectionFor = btAsset;
+				QueuedSelectionGUID = node.GUID;
+				Selection.activeObject = btAsset;
+				return;
+			}
+
+			selectedNode = node;
+
+			// Node is null, deselecting
+			if (node == null && btInspector != null) {
+				nodeInspector = null;
+				btInspector.Repaint ();
+				return;
+			}
+
+			// Node selected
+			Editor newInspector = Editor.CreateEditor (node);
+			if (newInspector != null) {
+				nodeInspector = newInspector;
+				nodeInspector.Repaint ();
+				return;
+			}
 		}
 	}
 

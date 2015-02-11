@@ -57,6 +57,7 @@ namespace Hivemind {
 			float x = float.Parse (el.GetAttribute("editorx"));
 			float y = float.Parse (el.GetAttribute("editory"));
 			node.editorPosition = new Vector2(x, y);
+			node.GUID = el.GetAttribute ("guid");
 			
 			if (node is Action) ((Action) node).Deserialize(el);
 			else if (node is Sequence) ((Sequence) node).Deserialize(el);
@@ -109,6 +110,7 @@ namespace Hivemind {
 			XmlElement el = doc.CreateElement(tagName);
 			el.SetAttribute("editorx", node.editorPosition.x.ToString());
 			el.SetAttribute("editory", node.editorPosition.y.ToString());
+			el.SetAttribute("guid", node.GUID);
 
 			if (node is Action) ((Action) node).Serialize(ref el);
 			else if (node is Sequence) ((Sequence) node).Serialize(ref el);

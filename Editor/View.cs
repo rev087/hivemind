@@ -21,7 +21,6 @@ namespace Hivemind {
 		Mode currentMode = Mode.None;
 		Node contextNode;
 		Vector2 initialMousePosition = Vector2.zero;
-		public Node selectedNode;
 
 		Vector2 nodeActionOffset = Vector2.zero;
 
@@ -36,7 +35,7 @@ namespace Hivemind {
 			int count = nodes.Count;
 			for (int i = 0; i < count; i++) {
 				if (nodes[i] != null) {
-					nodeRenderer.Draw (nodes[i], nodes[i] == selectedNode);
+					nodeRenderer.Draw (nodes[i], nodes[i] == BTEditorManager.Manager.selectedNode);
 				}
 			}
 		}
@@ -156,13 +155,13 @@ namespace Hivemind {
 				// Select node
 				if (currentMode == Mode.NodeAction && Event.current.button == 0) {
 					currentMode = Mode.None;
-					SelectNode (contextNode);
+					BTEditorManager.Manager.SelectNode (contextNode);
 					return true;
 				}
 
 				// Deselect node
 				else if (currentMode == Mode.CanvasAction && Event.current.button == 0) {
-					SelectNode (null);
+					BTEditorManager.Manager.SelectNode (null);
 					currentMode = Mode.None;
 					return true;
 				}
@@ -249,21 +248,6 @@ namespace Hivemind {
 					newCanvas.height = yOffset;
 				}
 				canvas = newCanvas;
-			}
-		}
-
-		public void SelectNode(Node node) {
-
-			selectedNode = node;
-			Editor nodeInspector = Editor.CreateEditor (node);
-
-			if (nodeInspector != null) {
-				BTEditorManager.Manager.nodeInspector = nodeInspector;
-				BTEditorManager.Manager.nodeInspector.Repaint ();
-			}
-			else if(BTEditorManager.Manager.btInspector != null) {
-				BTEditorManager.Manager.nodeInspector = null;
-				BTEditorManager.Manager.btInspector.Repaint ();
 			}
 		}
 

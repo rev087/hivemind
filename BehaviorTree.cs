@@ -135,6 +135,13 @@ namespace Hivemind {
 			node.lastTick = TotalTicks;
 			return result;
 		}
+
+		public Node GetNodeByGUID(string GUID) {
+			foreach (Node node in nodes) {
+				if (node.GUID == GUID) return node;
+			}
+			return null;
+		}
 	}
 
 
@@ -151,6 +158,9 @@ namespace Hivemind {
 		// Used by the debugger to visually display the last status returned
 		public Status? lastStatus;
 		public int lastTick = 0;
+
+		// GUID
+		public string GUID;
 		
 		// Child connections
 		public virtual void ConnectChild(Node child) {}
