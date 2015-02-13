@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -15,57 +14,19 @@ namespace Hivemind {
 	[System.Serializable]
 	public class Action : Node
 	{
+		// Target Script
+		public Object scriptInstance;
+		private string _scriptClass;
+		private string _scriptPath;
+		public bool HasScript { get { return _scriptClass == null || _scriptClass.Length > 0; } }
+		public string ScriptPath { get { return _scriptPath; } }
 
-		// Target MonoScript
-		private MonoScript _monoScriptInstance;
-		private string _monoScriptClass;
-		private string _monoScriptPath;
-		public MonoScript monoScript {
-			get {
-				// No class means no selection, return null
-				if (_monoScriptClass == null ||_monoScriptClass == "")
-					return null;
-				
-				// Return object reference if present
-				if (_monoScriptInstance != null)
-					return _monoScriptInstance;
-
-				// Load the script asset from the stored path
-				if (_monoScriptPath != null) {
-					_monoScriptInstance = (MonoScript) AssetDatabase.LoadAssetAtPath (_monoScriptPath, typeof(MonoScript));
-				}
-
-				// Failing that, the script was either renamed or removed, so we disassociate and log a warning
-				if (_monoScriptInstance == null) {
-					Debug.LogWarning(string.Format ("Class {0} not defined", _monoScriptClass));
-					monoScript = null;
-				}
-
-				return _monoScriptInstance;
-			}
-			set {
-				if (value != _monoScriptInstance) {
-					if (value != null) {
-						if (System.Type.GetType (value.name) == null && System.Type.GetType ("Hivemind." + value.name) == null) {
-							Debug.LogWarning(string.Format ("Class {0} not defined", value.name));
-							return;
-						}
-						_monoScriptPath = AssetDatabase.GetAssetPath(value);
-						_monoScriptClass = value.GetClass ().ToString();
-						_monoScriptInstance = value;
-					}
-					else {
-						_monoScriptPath = null;
-						_monoScriptClass = null;
-						_monoScriptInstance = null;
-					}
-					methodName = null;
-				}
-			}
-		}
-
-		public void ForceReload() {
-			_monoScriptInstance = (MonoScript) AssetDatabase.LoadAssetAtPath (_monoScriptPath, typeof(MonoScript));
+		public void SetScript(string scriptClass, string scriptPath, Object newScriptInstance) {
+			if (scriptClass != _scriptClass) 
+				methodName = null;
+			_scriptClass = scriptClass;
+			_scriptPath = scriptPath;
+			scriptInstance = newScriptInstance;
 		}
 		
 		// Target method
@@ -91,7 +52,7 @@ namespace Hivemind {
 		public System.Reflection.MethodInfo methodInfo {
 			get {
 				// Nothing is selected
-				if (monoScript == null || methodName == null)
+				if (_scriptClass == null || _scriptClass.Length == 0 || methodName == null)
 					return null;
 
 				// Return the cached value if present
@@ -100,9 +61,9 @@ namespace Hivemind {
 
 				// Attempt to retrieve the MethodInfo
 				if (_methodInfo == null) {
-					System.Type type = System.Type.GetType(_monoScriptClass);
+					System.Type type = System.Type.GetType(_scriptClass);
 					if (type == null) {
-						Debug.LogWarning(string.Format ("Could not find the class {0} associated with the action", _monoScriptClass));
+						Debug.LogWarning(string.Format ("Could not find the class {0} associated with the action", _scriptClass));
 						return null;
 					}
 					_methodInfo = type.GetMethod(methodName);
@@ -226,8 +187,8 @@ namespace Hivemind {
 		
 		// Serialization
 		public void Serialize(ref XmlElement el) {
-			el.SetAttribute("script", _monoScriptClass);
-			el.SetAttribute("scriptpath", _monoScriptPath);
+			el.SetAttribute("script", _scriptClass);
+			el.SetAttribute("scriptpath", _scriptPath);
 			el.SetAttribute("method", methodName);
 			foreach (KeyValuePair<string, ActionParameter> parameter in Parameters)
 			{
@@ -241,8 +202,8 @@ namespace Hivemind {
 		
 		// Deserialization
 		public void Deserialize(XmlElement el) {
-			_monoScriptClass = el.GetAttribute("script");
-			_monoScriptPath = el.GetAttribute("scriptpath");
+			_scriptClass = el.GetAttribute("script");
+			_scriptPath = el.GetAttribute("scriptpath");
 			methodName = el.GetAttribute ("method");
 			if (methodName != null && methodInfo != null && el.HasChildNodes) {
 				foreach (XmlNode paramNode in el.ChildNodes) {
@@ -267,13 +228,13 @@ namespace Hivemind {
 		private static Dictionary<string, ActionLibrary> ActionLibraries = new Dictionary<string, ActionLibrary>();
 		public override Status Tick(GameObject agent, Context context) {
 
-			string actionLibID = _monoScriptClass + "-" + behaviorTree.GetInstanceID();
+			string actionLibID = _scriptClass + "-" + behaviorTree.GetInstanceID();
 
 			ActionLibrary lib;
 			if (ActionLibraries.ContainsKey(actionLibID)) {
 				lib = ActionLibraries[actionLibID];
 			} else {
-				System.Type type = System.Type.GetType (_monoScriptClass);
+				System.Type type = System.Type.GetType (_scriptClass);
 				if (type == null) {
 					Debug.LogWarning("An action node does not have an associated ActionLibrary");
 					return Status.Error;

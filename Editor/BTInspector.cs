@@ -113,32 +113,48 @@ namespace Hivemind {
 			return 0;
 		}
 
-		public void DrawInspector(Action node) {
+		public void DrawInspector(Action action) {
 			EditorGUILayout.LabelField(new GUIContent("Action"), TitleStyle);
 
 			EditorGUILayout.Space ();
 
+
 			// MonoScript selection field
-			Action action = (Action) serializedObject.targetObject;
-			action.monoScript = (MonoScript) EditorGUILayout.ObjectField("Action Library", action.monoScript, typeof(MonoScript), false);
+			if ( action.HasScript && action.scriptInstance == null) {
+				action.scriptInstance = (Object) AssetDatabase.LoadAssetAtPath (action.ScriptPath, typeof(MonoScript));
+			}
+			MonoScript monoScript = (MonoScript) EditorGUILayout.ObjectField("Action Library", (MonoScript) action.scriptInstance, typeof(MonoScript), false);
+			if (monoScript != null) {
+				string scriptClass = monoScript.GetClass ().ToString();
+				string scriptPath = AssetDatabase.GetAssetPath(monoScript);
+				action.SetScript(scriptClass, scriptPath, (Object) monoScript);
+			} else {
+				action.SetScript(null, null, null);
+			}
 
 			EditorGUILayout.Space ();
 
 			 // Method selection field
-			if (action.monoScript != null) {
-				System.Type type = action.monoScript.GetClass();
-				MethodInfo[] methods = type.GetMethods();
-				List<string> options = new List<string>();
-				options.Add (" ");
-				foreach (MethodInfo method in methods) {
-					object[] attrs = method.GetCustomAttributes (typeof(ActionAttribute), false);
-					if (attrs.Length > 0) {
-						options.Add (method.Name);
+			if (monoScript != null) {
+				if (!monoScript.GetClass ().IsSubclassOf(typeof(ActionLibrary))) {
+					EditorGUILayout.HelpBox (string.Format ("{0} is not a subclass of Hivemind.ActionLibrary", monoScript.GetClass().ToString()), MessageType.Warning);
+				} else {
+					EditorGUILayout.LabelField(monoScript.GetClass ().ToString (), SubtitleStyle);
+					EditorGUILayout.Space ();
+					System.Type type = monoScript.GetClass();
+					MethodInfo[] methods = type.GetMethods();
+					List<string> options = new List<string>();
+					options.Add (" ");
+					foreach (MethodInfo method in methods) {
+						object[] attrs = method.GetCustomAttributes (typeof(ActionAttribute), false);
+						if (attrs.Length > 0) {
+							options.Add (method.Name);
+						}
 					}
+					string[] opts = options.ToArray();
+					
+					action.methodName = opts[EditorGUILayout.Popup("Method", IndexOf (opts, action.methodName), opts)];
 				}
-				string[] opts = options.ToArray();
-
-				action.methodName = opts[EditorGUILayout.Popup("Method", IndexOf (opts, action.methodName), opts)];
 			}
 
 			EditorGUILayout.Space ();
