@@ -202,7 +202,14 @@ namespace Hivemind {
 			else if (type == typeof(float)) {
 				return EditorGUILayout.FloatField(label, (float) value);
 			}
-			return null;
+			else if (type == typeof(bool)) {
+				return EditorGUILayout.Toggle(label, (bool) value);
+			}
+			else {
+				string msg = string.Format("{0}: parameters of type \"{1}\" are not supported", label, type.ToString());
+				EditorGUILayout.HelpBox(msg, MessageType.Warning);
+				return null;
+			}
 		}
 
 		public void DrawInspector(Selector node) {
