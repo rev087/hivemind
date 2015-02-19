@@ -45,6 +45,18 @@ namespace Hivemind {
 		}
 
 		[Hivemind.Action]
+		public Hivemind.Status Throttle(float seconds) {
+			float lastLap = context.Get<float>("throttleLap", Time.time - seconds);
+			if (Time.time - lastLap >= seconds) {	
+				context.Set<float>("throttleLap", Time.time);
+				return Status.Success;
+			}
+			else {
+				return Status.Running;
+			}
+		}
+
+		[Hivemind.Action]
 		[Hivemind.Expects("gameObject", typeof(GameObject))]
 		public Hivemind.Status LookAtGameObject() {
 			GameObject gameObject = context.Get<GameObject>("gameObject");
