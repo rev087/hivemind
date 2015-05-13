@@ -30,7 +30,7 @@ namespace Hivemind {
 		[MenuItem("Window/Behavior Tree Editor")]
 		public static void ShowWindow() {
 			BTEditorWindow editor = EditorWindow.GetWindow<BTEditorWindow>();
-			editor.minSize = new Vector2(480, 360);
+			editor.minSize = new Vector2(100, 100);
 			editor.title = "Behavior Tree";
 		}
 
