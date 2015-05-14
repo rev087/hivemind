@@ -12,30 +12,42 @@ namespace Hivemind {
 		public static int height { get { return 120; } }
 		public static Vector2 step { get { return new Vector2(width / 10, height / 10); } }
 		
+		// Generates a single tile of the grid texture
 		void GenerateGrid() {
 			gridTex = new Texture2D(width, height);
 			gridTex.hideFlags = HideFlags.DontSave;
 			
-			Color bg = new Color(0.365f, 0.365f, 0.365f);
+			Color bg = new Color(0.365f, 0.365f, 0.4f, 1f);
 			Color dark = new Color(0.278f, 0.278f, 0.278f);
 			Color light = new Color(0.329f, 0.329f, 0.329f);
 			Color darkX = new Color(0.216f, 0.216f, 0.216f);
 			Color lightX = new Color(0.298f, 0.298f, 0.298f);
 			
 			for (int x = 0; x < width; x ++) {
+
 				for (int y = 0; y < height; y ++) {
 					
+					// Left Top edge, dark intersection color
 					if (x == 0 && y == 0)
 						gridTex.SetPixel(x, y, darkX);
+
+					// Left and Top edges, dark color
 					else if (x == 0 || y == 0)
 						gridTex.SetPixel(x, y, dark);
+
+					// Finer grid intersection color
 					else if (x % step.x == 0 && y % step.y == 0)
 						gridTex.SetPixel(x, y, lightX);
+
+					// Finer grid color
 					else if (x % step.x == 0 || y % step.y == 0)
 						gridTex.SetPixel(x, y, light);
+
+					// Background
 					else
 						gridTex.SetPixel(x, y, bg);
 				}
+				
 			}
 			
 			gridTex.Apply();
