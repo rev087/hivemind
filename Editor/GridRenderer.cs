@@ -17,11 +17,13 @@ namespace Hivemind {
 			gridTex = new Texture2D(width, height);
 			gridTex.hideFlags = HideFlags.DontSave;
 			
-			Color bg = new Color(0.365f, 0.365f, 0.4f, 1f);
-			Color dark = new Color(0.278f, 0.278f, 0.278f);
-			Color light = new Color(0.329f, 0.329f, 0.329f);
-			Color darkX = new Color(0.216f, 0.216f, 0.216f);
-			Color lightX = new Color(0.298f, 0.298f, 0.298f);
+			Color bg = new Color(0.64f, 0.64f, 0.64f);
+
+			Color dark = Color.Lerp(bg, Color.black, 0.15f);
+			Color darkIntersection = Color.Lerp(bg, Color.black, 0.2f);
+
+			Color light = Color.Lerp(bg, Color.black, 0.05f);
+			Color lightIntersection = Color.Lerp(bg, Color.black, 0.1f);
 			
 			for (int x = 0; x < width; x ++) {
 
@@ -29,7 +31,7 @@ namespace Hivemind {
 					
 					// Left Top edge, dark intersection color
 					if (x == 0 && y == 0)
-						gridTex.SetPixel(x, y, darkX);
+						gridTex.SetPixel(x, y, darkIntersection);
 
 					// Left and Top edges, dark color
 					else if (x == 0 || y == 0)
@@ -37,7 +39,7 @@ namespace Hivemind {
 
 					// Finer grid intersection color
 					else if (x % step.x == 0 && y % step.y == 0)
-						gridTex.SetPixel(x, y, lightX);
+						gridTex.SetPixel(x, y, lightIntersection);
 
 					// Finer grid color
 					else if (x % step.x == 0 || y % step.y == 0)
@@ -47,7 +49,7 @@ namespace Hivemind {
 					else
 						gridTex.SetPixel(x, y, bg);
 				}
-				
+
 			}
 			
 			gridTex.Apply();
